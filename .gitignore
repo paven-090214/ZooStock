@@ -23,3 +23,10 @@ Thumbs.db
 # Secrets
 *.pem
 *.key
+
+# Database
+/Database/
+
+# AI Agent Instructions
+AGENTS.md
+/docs/
