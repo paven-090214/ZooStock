@@ -5,10 +5,10 @@ import java.util.Date;
 public class MemberDTO {
     private Long memberUid;
     private String memberName;
-    private String MemberId;
-    private String MemberPassword;
-    private Long MemberPoint;
-    private Date MemberCreatedAt;
+    private String memberId;
+    private String memberPassword;
+    private Long memberPoint;
+    private Date memberCreatedAt;
 
     public Long getMemberUid() {
         return memberUid;
@@ -27,34 +27,34 @@ public class MemberDTO {
     }
 
     public String getMemberId() {
-        return MemberId;
+        return memberId;
     }
 
     public void setMemberId(String memberId) {
-        MemberId = memberId;
+        this.memberId = memberId;
     }
 
     public String getMemberPassword() {
-        return MemberPassword;
+        return memberPassword;
     }
 
     public void setMemberPassword(String memberPassword) {
-        MemberPassword = memberPassword;
+        this.memberPassword = memberPassword;
     }
 
     public Long getMemberPoint() {
-        return MemberPoint;
+        return memberPoint;
     }
 
     public void setMemberPoint(Long memberPoint) {
-        MemberPoint = memberPoint;
+        this.memberPoint = memberPoint;
     }
 
     public Date getMemberCreatedAt() {
-        return MemberCreatedAt;
+        return memberCreatedAt;
     }
 
     public void setMemberCreatedAt(Date memberCreatedAt) {
-        MemberCreatedAt = memberCreatedAt;
+        this.memberCreatedAt = memberCreatedAt;
     }
 }

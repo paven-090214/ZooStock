@@ -6,7 +6,15 @@ import java.util.Date;
 import java.util.Optional;
 
 @Entity
-@Table(name = "member")
+@Table(
+        name = "member",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "unique_member_id",
+                        columnNames = "member_id"
+                )
+        }
+)
 public class MemberEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,7 +25,7 @@ public class MemberEntity {
     private String memberName;
 
     @Column(name = "member_id")
-    private String MemberId;
+    private String memberId;
 
     @Column(name = "member_password")
     private String memberPassword;
@@ -26,7 +34,7 @@ public class MemberEntity {
     private Long  memberPoint;
 
     @Column(name = "member_created_at")
-    private Date MemberCreatedAt;
+    private Date memberCreatedAt;
 
     public Long getMemberPoint() {
         return memberPoint;
@@ -45,11 +53,11 @@ public class MemberEntity {
     }
 
     public String getMemberId() {
-        return MemberId;
+        return memberId;
     }
 
     public void setMemberId(String memberId) {
-        MemberId = memberId;
+        this.memberId = memberId;
     }
 
     public String getMemberName() {

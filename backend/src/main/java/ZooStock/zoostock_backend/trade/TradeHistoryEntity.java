@@ -35,8 +35,9 @@ public class TradeHistoryEntity {
     @Column(name = "traded_at")
     private Date tradedAt;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "trade_type")
-    private String tradeType;
+    private TradeType tradeType;
 
     public void setMemberUid(Long memberUid) {
         this.memberUid = memberUid;
@@ -58,7 +59,7 @@ public class TradeHistoryEntity {
         this.tradedAt = tradedAt;
     }
 
-    public void setTradeType(String tradeType) {
+    public void setTradeType(TradeType tradeType) {
         this.tradeType = tradeType;
     }
 }
