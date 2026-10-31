@@ -31,4 +31,32 @@ public class MemberEntity {
     public Long getMemberPoint() {
         return memberPoint;
     }
+
+    public void setMemberPoint(Long memberPoint) {
+        this.memberPoint = memberPoint;
+    }
+
+    public String getMemberPassword() {
+        return memberPassword;
+    }
+
+    public void setMemberPassword(String memberPassword) {
+        this.memberPassword = memberPassword;
+    }
+
+    public String getMemberId() {
+        return MemberId;
+    }
+
+    public void setMemberId(String memberId) {
+        MemberId = memberId;
+    }
+
+    public String getMemberName() {
+        return memberName;
+    }
+
+    public void setMemberName(String memberName) {
+        this.memberName = memberName;
+    }
 }
