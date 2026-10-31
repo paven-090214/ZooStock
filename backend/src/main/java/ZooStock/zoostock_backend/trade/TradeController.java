@@ -19,7 +19,8 @@ import java.util.Optional;
 
 @RestController
 public class TradeController {
-
+    // 테스트용 필드
+    private final Long memberUid = 1L;
     private final TradeService tradeService;
 
     public TradeController(TradeService tradeService) {
