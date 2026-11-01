@@ -101,7 +101,6 @@ public class TradeService {
             throw new IllegalArgumentException("매수 수량은 1주 이상이여야 합니다.");
         }
 
-        // 로그인 기능 구현 후 적용 예정
         Optional<MemberEntity> memberEntity = memberRepository.findByIdForUpdate(memberUid);
         Optional<TokenEntity> tokenEntity = tokenRepository.findById(tokenId);
         Optional<TokenHoldingEntity> optionalTokenHoldingEntity =

@@ -1,13 +1,23 @@
 package ZooStock.zoostock_backend.price;
 
-import ZooStock.zoostock_backend.token.TokenEntity;
-import ZooStock.zoostock_backend.token.TokenRepository;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-
-@Transactional
+@EnableScheduling
+@Component
 public class PriceScheduler {
 
+    private final PriceHistoryService priceHistoryService;
+
+    public PriceScheduler(
+            PriceHistoryService priceHistoryService
+    ) {
+        this.priceHistoryService = priceHistoryService;
+    }
+
+    @Scheduled(cron = "*/30 * * * * *")
+    public void schedule() {
+        priceHistoryService.updatePrice();
+    }
 }

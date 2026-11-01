@@ -56,6 +56,10 @@ public class MemberEntity {
         return memberId;
     }
 
+    public void setMemberCreatedAt(Date memberCreatedAt) {
+        this.memberCreatedAt = memberCreatedAt;
+    }
+
     public void setMemberId(String memberId) {
         this.memberId = memberId;
     }

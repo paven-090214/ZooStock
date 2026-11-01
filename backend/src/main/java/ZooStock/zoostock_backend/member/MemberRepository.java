@@ -18,6 +18,12 @@ public interface MemberRepository extends  JpaRepository<MemberEntity, Long>
     Optional<MemberEntity> findByIdForUpdate(
             @Param("memberUid") Long memberUid
     );
+
+    Optional<MemberEntity> findByMemberId(String memberID);
+
+    boolean existsByMemberId(String memberId);
+
+    boolean existsByMemberName(String memberName);
 }
 
 

@@ -33,8 +33,8 @@ public class PriceHistoryService {
 
         for (TokenEntity tokenEntity : tokenList) {
             PriceHistoryEntity priceHistoryEntity = new PriceHistoryEntity();
-            // -8부터 8까지 난수를 뽑음
-            int changePercent = ThreadLocalRandom.current().nextInt(-8, 9);
+            // -30부터 30까지 난수를 뽑음
+            int changePercent = ThreadLocalRandom.current().nextInt(-30, 31);
             // -0.008 ~ 0.008의 변동률을 기존 가격에 적용 <- codex 사용
             BigDecimal changeRate = BigDecimal.valueOf(changePercent)
                     .divide(BigDecimal.valueOf(1000));
