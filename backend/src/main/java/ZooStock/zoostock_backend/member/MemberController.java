@@ -30,7 +30,7 @@ public class MemberController {
     public ResponseEntity<String> login(
             @RequestBody MemberDTO memberDTO
     ) {
-        memberService.login(memberDTO);
-        return ResponseEntity.ok("로그인 성공");
+        String jwtToken = memberService.login(memberDTO);
+        return ResponseEntity.ok(jwtToken);
     }
 }

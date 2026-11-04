@@ -36,6 +36,10 @@ public class MemberEntity {
     @Column(name = "member_created_at")
     private Date memberCreatedAt;
 
+    public Long getMemberUid() {
+        return memberUid;
+    }
+
     public Long getMemberPoint() {
         return memberPoint;
     }

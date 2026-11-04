@@ -1,5 +1,6 @@
 package ZooStock.zoostock_backend.member;
 
+import ZooStock.zoostock_backend.jwt.JwtProvider;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,13 +13,16 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtProvider jwtProvider;
 
     public MemberService(
             MemberRepository memberRepository,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            JwtProvider jwtProvider
             ) {
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtProvider = jwtProvider;
     }
 
     @Transactional
@@ -52,12 +56,12 @@ public class MemberService {
         memberEntity.setMemberId(memberDTO.getMemberId());
         memberEntity.setMemberCreatedAt(date);
         memberEntity.setMemberName(memberDTO.getMemberName());
-        memberEntity.setMemberPoint(100000L);
+        memberEntity.setMemberPoint(10000L);
         memberRepository.save(memberEntity);
     }
 
     @Transactional
-    public void login(MemberDTO memberDTO) {
+    public String login(MemberDTO memberDTO) {
 
         Optional<MemberEntity> memberOptional =
                 memberRepository.findByMemberId(memberDTO.getMemberId());
@@ -82,7 +86,7 @@ public class MemberService {
         }
 
         if (existsPassword) {
-            //로그인 성공
+            return jwtProvider.createAccessToken(memberEntity.getMemberUid());
         }
         else {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
