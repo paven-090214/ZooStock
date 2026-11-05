@@ -23,18 +23,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+
+        return path.equals("/login") ||
+                path.equals("/signup") ||
+                path.startsWith("/swagger-ui/") ||
+                path.equals("/swagger-ui.html") ||
+                path.startsWith("/v3/api-docs");
+    }
+
+    @Override
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String authorization = request.getHeader("authorization ");
+        String authorization = request.getHeader("authorization");
 
         if (authorization == null ||
                 !authorization.startsWith("Bearer ")
         ) {
-            response.sendError(404, "JWT가 없습니다.");
+            response.sendError(401, "JWT가 없습니다.");
             return;
         }
 
