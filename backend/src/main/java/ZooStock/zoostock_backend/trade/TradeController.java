@@ -8,6 +8,7 @@ import ZooStock.zoostock_backend.member.MemberRepository;
 import ZooStock.zoostock_backend.token.TokenDTO;
 import ZooStock.zoostock_backend.token.TokenEntity;
 import ZooStock.zoostock_backend.token.TokenRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -19,8 +20,7 @@ import java.util.Optional;
 
 @RestController
 public class TradeController {
-    // 테스트용 필드
-    private final Long memberUid = 1L;
+
     private final TradeService tradeService;
 
     public TradeController(TradeService tradeService) {
@@ -30,9 +30,9 @@ public class TradeController {
     @PostMapping("/trade/{tokenId}/buy")
     public ResponseEntity<String> buyToken(
             @PathVariable Long tokenId,
-            @RequestParam Long quantity
+            @RequestParam Long quantity,
+            @RequestAttribute("memberUid") Long memberUid
     ) {
-        // memberUid 전달 방법은 로그인 구현 후 추가 예정
         tradeService.buyToken(memberUid, tokenId, quantity);
         return ResponseEntity.ok("매수에 성공했습니다.");
     }
@@ -40,8 +40,10 @@ public class TradeController {
     @PostMapping("/trade/{tokenId}/sell")
     public ResponseEntity<String> sellToken(
             @PathVariable Long tokenId,
-            @RequestParam Long quantity
+            @RequestParam Long quantity,
+            HttpServletRequest request
     ) {
+        Long memberUid = (Long) request.getAttribute("memberUid");
         tradeService.sellToken(memberUid, tokenId, quantity);
         return ResponseEntity.ok("매도에 성공했습니다.");
     }

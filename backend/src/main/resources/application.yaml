@@ -1,6 +1,9 @@
 server:
   port: 8079
 
+jwt:
+  secret: ${SECRET_KEY}
+
 spring:
   application:
     name: zoostock-backend

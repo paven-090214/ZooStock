@@ -1,6 +1,8 @@
 package ZooStock.zoostock_backend.jwt;
 
 import ZooStock.zoostock_backend.member.MemberRepository;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import org.springframework.stereotype.Component;
 
@@ -31,5 +33,15 @@ public class JwtProvider {
                 // SIG : JWT 내부의 서명 알고리즘 관련 클래스
                 // HS256 : HMAC-SHA256 서명 알고리즘을 나타내는 상수
                 .compact(); // JWT를 최종적으로 문자열로 생성
+    }
+
+    public Long getMemberUid(String memberToken) {
+        Jws<Claims> parsedToken = Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(memberToken);
+
+        String memberUid =  parsedToken.getPayload().getSubject();
+        return Long.parseLong(memberUid);
     }
 }

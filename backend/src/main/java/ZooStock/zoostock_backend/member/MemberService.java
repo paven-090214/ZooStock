@@ -69,6 +69,15 @@ public class MemberService {
             throw new IllegalArgumentException("아이디가 존재하지 않습니다.");
         }
 
+        if (
+                memberDTO.getMemberId() == null ||
+                        memberDTO.getMemberId().isBlank() ||
+                        memberDTO.getMemberPassword() == null ||
+                        memberDTO.getMemberPassword().isBlank()
+        ) {
+            throw new IllegalArgumentException("값이 비어있을 수 없습니다.");
+        }
+
         MemberEntity memberEntity = memberOptional.get();
         boolean existsPassword =
                 passwordEncoder.matches(
@@ -76,14 +85,6 @@ public class MemberService {
                         memberEntity.getMemberPassword()
                 );
 
-        if (
-                memberDTO.getMemberId() == null ||
-                memberDTO.getMemberId().isBlank() ||
-                        memberDTO.getMemberPassword() == null ||
-                        memberDTO.getMemberPassword().isBlank()
-        ) {
-            throw new IllegalArgumentException("값이 비어있을 수 없습니다.");
-        }
 
         if (existsPassword) {
             return jwtProvider.createAccessToken(memberEntity.getMemberUid());
