@@ -4,6 +4,7 @@ public class TokenDTO {
     private Long tokenId;
     private String tokenName;
     private Long tokenPrice;
+    private String imgPath;
 
     public Long getTokenId() {
         return tokenId;
@@ -27,5 +28,13 @@ public class TokenDTO {
 
     public void setTokenPrice(Long tokenPrice) {
         this.tokenPrice = tokenPrice;
+    }
+
+    public String getImgPath() {
+        return imgPath;
+    }
+
+    public void setImgPath(String imgPath) {
+        this.imgPath = imgPath;
     }
 }

@@ -16,7 +16,30 @@ public class TokenEntity {
     @Column(name = "token_price")
     private Long tokenPrice;
 
+    @Column(name = "img_path")
+    private String imgPath;
+
+    public Long getTokenId() {
+        return tokenId;
+    }
+
+    public void setTokenId(Long tokenId) {
+        this.tokenId = tokenId;
+    }
+
+    public String getTokenName() {
+        return tokenName;
+    }
+
+    public void setTokenName(String tokenName) {
+        this.tokenName = tokenName;
+    }
+
     public Long getTokenPrice() {
         return tokenPrice;
+    }
+
+    public void setTokenPrice(Long tokenPrice) {
+        this.tokenPrice = tokenPrice;
     }
 }

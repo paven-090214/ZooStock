@@ -1,51 +1,52 @@
 package ZooStock.zoostock_backend.trade;
 
+import ZooStock.zoostock_backend.holding.TokenHoldingEntity;
+import ZooStock.zoostock_backend.holding.TokenHoldingRepository;
 import ZooStock.zoostock_backend.member.MemberDTO;
 import ZooStock.zoostock_backend.member.MemberEntity;
 import ZooStock.zoostock_backend.member.MemberRepository;
 import ZooStock.zoostock_backend.token.TokenDTO;
 import ZooStock.zoostock_backend.token.TokenEntity;
 import ZooStock.zoostock_backend.token.TokenRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import org.apache.coyote.Response;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Optional;
 
 @RestController
+@SecurityRequirement(name = "bearerAuth")
 public class TradeController {
 
-    private final MemberRepository memberRepository;
-    private final TokenRepository tokenRepository;
+    private final TradeService tradeService;
 
-    public TradeController(
-            TokenRepository tokenRepository,
-            MemberRepository memberRepository
-    ) {
-        this.tokenRepository = tokenRepository;
-        this.memberRepository = memberRepository;
+    public TradeController(TradeService tradeService) {
+        this.tradeService = tradeService;
     }
 
     @PostMapping("/trade/{tokenId}/buy")
-    public void buyToken(
+    public ResponseEntity<String> buyToken(
             @PathVariable Long tokenId,
-            @RequestParam int quantity
+            @RequestParam Long quantity,
+            @RequestAttribute("memberUid") Long memberUid
     ) {
-        if (quantity <= 0) {
-            return ;
-        }
+        tradeService.buyToken(memberUid, tokenId, quantity);
+        return ResponseEntity.ok("매수에 성공했습니다.");
+    }
 
-        // 로그인 기능 구현 후 적용 예정
-        Optional<MemberEntity> memberEntity = memberRepository.findById(memberUid);
-        Optional<TokenEntity> tokenEntity = tokenRepository.findById(tokenId);
-
-        if (tokenEntity.isEmpty() || memberEntity.isEmpty()) {
-            return ;
-        }
-        TokenEntity token = tokenEntity.get();
-        MemberEntity member = memberEntity.get();
-
-        if (member.getMemberPoint() < quantity * token.getTokenPrice()) {
-            return;
-        }
+    @PostMapping("/trade/{tokenId}/sell")
+    public ResponseEntity<String> sellToken(
+            @PathVariable Long tokenId,
+            @RequestParam Long quantity,
+            HttpServletRequest request
+    ) {
+        Long memberUid = (Long) request.getAttribute("memberUid");
+        tradeService.sellToken(memberUid, tokenId, quantity);
+        return ResponseEntity.ok("매도에 성공했습니다.");
     }
 }
