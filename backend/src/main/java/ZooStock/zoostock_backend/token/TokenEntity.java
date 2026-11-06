@@ -16,6 +16,9 @@ public class TokenEntity {
     @Column(name = "token_price")
     private Long tokenPrice;
 
+    @Column(name = "img_path")
+    private String imgPath;
+
     public Long getTokenId() {
         return tokenId;
     }
