@@ -9,16 +9,18 @@ public class BoardDTO {
     private String content;
     private Long viewCount;
     private Date boardCreatedAt;
+    private Long likeCount;
 
     public BoardDTO(){}
 
-    public BoardDTO(Long boardId, Long memberUid, String title, String content, Long viewCount, Date boardCreatedAt) {
+    public BoardDTO(Long boardId, Long memberUid, String title, String content, Long viewCount, Date boardCreatedAt, Long likeCount) {
         this.boardId = boardId;
         this.memberUid = memberUid;
         this.title = title;
         this.content = content;
         this.viewCount = viewCount;
         this.boardCreatedAt = boardCreatedAt;
+        this.likeCount = likeCount;
     }
 
     public BoardDTO(Long boardId, Long memberUid, String title, String content) {
@@ -74,5 +76,13 @@ public class BoardDTO {
 
     public void setBoardCreatedAt(Date boardCreatedAt) {
         this.boardCreatedAt = boardCreatedAt;
+    }
+
+    public Long getLikeCount() {
+        return likeCount;
+    }
+
+    public void setLikeCount(Long likeCount) {
+        this.likeCount = likeCount;
     }
 }

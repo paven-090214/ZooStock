@@ -1,5 +1,8 @@
 package ZooStock.zoostock_backend.board;
 
+import ZooStock.zoostock_backend.board_like.BoardLikeEntity;
+import ZooStock.zoostock_backend.board_like.BoardLikeRepository;
+import ZooStock.zoostock_backend.member.MemberDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -9,11 +12,14 @@ import java.util.Optional;
 public class BoardService {
 
     private final BoardRepository boardRepository;
+    private final BoardLikeRepository boardLikeRepository;
 
     public BoardService (
-            BoardRepository boardRepository
+            BoardRepository boardRepository,
+            BoardLikeRepository boardLikeRepository
     ) {
         this.boardRepository = boardRepository;
+        this.boardLikeRepository = boardLikeRepository;
     }
 
     public void createBoard(
@@ -53,6 +59,8 @@ public class BoardService {
                 boardEntity.getViewCount() + 1
         );
 
+        Long count = boardLikeRepository.countLikesByBoardId(boardId);
+
         boardRepository.save(boardEntity);
 
         return new BoardDTO(
@@ -61,7 +69,8 @@ public class BoardService {
                 boardEntity.getTitle(),
                 boardEntity.getContent(),
                 boardEntity.getViewCount(),
-                boardEntity.getBoardCreatedAt()
+                boardEntity.getBoardCreatedAt(),
+                count
         );
     }
 
@@ -72,6 +81,8 @@ public class BoardService {
         if (optionalBoard.isEmpty()) {
             throw new IllegalArgumentException("게시글 번호를 찾을 수 없습니다.");
         }
+
+        Long Count = boardLikeRepository.countLikesByBoardId(boardId);
 
         BoardEntity boardEntity = optionalBoard.get();
 
@@ -85,7 +96,8 @@ public class BoardService {
                 boardEntity.getTitle(),
                 boardEntity.getContent(),
                 boardEntity.getViewCount(),
-                boardEntity.getBoardCreatedAt()
+                boardEntity.getBoardCreatedAt(),
+                Count
         );
     }
 
@@ -100,5 +112,17 @@ public class BoardService {
         BoardEntity entity = optionalBoard.get();
 
         boardRepository.delete(entity);
+    }
+
+    public Long likeAction(Long boardId, MemberDTO memberDTO) {
+
+        BoardLikeEntity boardLikeEntity = new BoardLikeEntity(
+                memberDTO.getMemberUid(),
+                boardId
+        );
+
+        boardLikeRepository.save(boardLikeEntity);
+
+        return boardLikeRepository.countLikesByBoardId(boardId);
     }
 }

@@ -31,7 +31,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 path.startsWith("/swagger-ui/") ||
                 path.equals("/swagger-ui.html") ||
                 path.startsWith("/v3/api-docs") ||
-                path.startsWith("/board/{boardId}");
+                (
+                        request.getMethod().equals("GET") &&
+                                (
+                                        path.equals("/board") ||
+                                    path.matches("/board/[0-9]+")
+                                )
+                        );
     }
 
     @Override

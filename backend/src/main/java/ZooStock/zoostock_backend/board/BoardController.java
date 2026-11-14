@@ -1,5 +1,7 @@
 package ZooStock.zoostock_backend.board;
 
+import ZooStock.zoostock_backend.board_like.BoardLikeRepository;
+import ZooStock.zoostock_backend.member.MemberDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,6 +33,7 @@ public class BoardController {
             @PathVariable Long boardId
     ) {
         BoardDTO response = boardService.getBoard(boardId);
+
         return ResponseEntity.ok(response);
     }
 
@@ -48,5 +51,13 @@ public class BoardController {
             @PathVariable Long boardId
     ) {
         boardService.deleteBoard(boardId);
+    }
+
+    @PostMapping("/board/{boardId}/like")
+    public Long likeAction(
+            @PathVariable Long boardId,
+            @RequestBody MemberDTO memberDTO
+            ) {
+        return boardService.likeAction(boardId, memberDTO);
     }
 }
