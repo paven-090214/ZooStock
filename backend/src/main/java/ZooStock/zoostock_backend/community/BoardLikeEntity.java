@@ -14,7 +14,7 @@ public class BoardLikeEntity {
     @Column(name = "board_id")
     private Long boardId;
 
-    @Column(name = "member_id")
+    @Column(name = "member_uid")
     private Long memberUid;
 
     public BoardLikeEntity(){}
