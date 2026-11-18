@@ -1,7 +1,5 @@
-package ZooStock.zoostock_backend.board;
+package ZooStock.zoostock_backend.community;
 
-import ZooStock.zoostock_backend.board_like.BoardLikeEntity;
-import ZooStock.zoostock_backend.board_like.BoardLikeRepository;
 import ZooStock.zoostock_backend.member.MemberDTO;
 import org.springframework.stereotype.Service;
 

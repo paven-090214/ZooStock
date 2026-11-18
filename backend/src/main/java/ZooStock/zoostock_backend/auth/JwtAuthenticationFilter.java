@@ -1,6 +1,5 @@
-package ZooStock.zoostock_backend.filter;
+package ZooStock.zoostock_backend.auth;
 
-import ZooStock.zoostock_backend.jwt.JwtProvider;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

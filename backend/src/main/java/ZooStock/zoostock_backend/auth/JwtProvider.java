@@ -1,6 +1,5 @@
-package ZooStock.zoostock_backend.jwt;
+package ZooStock.zoostock_backend.auth;
 
-import ZooStock.zoostock_backend.member.MemberRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;

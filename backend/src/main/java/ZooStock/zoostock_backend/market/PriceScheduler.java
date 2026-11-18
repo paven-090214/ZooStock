@@ -1,4 +1,4 @@
-package ZooStock.zoostock_backend.price;
+package ZooStock.zoostock_backend.market;
 
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;

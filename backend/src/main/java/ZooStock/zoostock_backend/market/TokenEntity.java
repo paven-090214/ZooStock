@@ -1,9 +1,22 @@
-package ZooStock.zoostock_backend.token;
+package ZooStock.zoostock_backend.market;
 
-public class TokenDTO {
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "token")
+public class TokenEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "token_id")
     private Long tokenId;
+
+    @Column(name = "token_name")
     private String tokenName;
+
+    @Column(name = "token_price")
     private Long tokenPrice;
+
+    @Column(name = "img_path")
     private String imgPath;
 
     public Long getTokenId() {
@@ -28,13 +41,5 @@ public class TokenDTO {
 
     public void setTokenPrice(Long tokenPrice) {
         this.tokenPrice = tokenPrice;
-    }
-
-    public String getImgPath() {
-        return imgPath;
-    }
-
-    public void setImgPath(String imgPath) {
-        this.imgPath = imgPath;
     }
 }

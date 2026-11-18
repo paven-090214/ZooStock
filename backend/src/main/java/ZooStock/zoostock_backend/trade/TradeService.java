@@ -1,11 +1,9 @@
 package ZooStock.zoostock_backend.trade;
 
-import ZooStock.zoostock_backend.holding.TokenHoldingEntity;
-import ZooStock.zoostock_backend.holding.TokenHoldingRepository;
 import ZooStock.zoostock_backend.member.MemberEntity;
 import ZooStock.zoostock_backend.member.MemberRepository;
-import ZooStock.zoostock_backend.token.TokenEntity;
-import ZooStock.zoostock_backend.token.TokenRepository;
+import ZooStock.zoostock_backend.market.TokenEntity;
+import ZooStock.zoostock_backend.market.TokenRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 

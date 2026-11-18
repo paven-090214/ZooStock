@@ -1,4 +1,4 @@
-package ZooStock.zoostock_backend.board_like;
+package ZooStock.zoostock_backend.community;
 
 import jakarta.persistence.*;
 

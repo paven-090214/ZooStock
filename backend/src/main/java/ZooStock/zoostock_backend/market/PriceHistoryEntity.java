@@ -1,4 +1,4 @@
-package ZooStock.zoostock_backend.price;
+package ZooStock.zoostock_backend.market;
 
 import jakarta.persistence.*;
 

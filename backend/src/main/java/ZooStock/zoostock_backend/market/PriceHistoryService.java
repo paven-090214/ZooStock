@@ -1,7 +1,5 @@
-package ZooStock.zoostock_backend.price;
+package ZooStock.zoostock_backend.market;
 
-import ZooStock.zoostock_backend.token.TokenEntity;
-import ZooStock.zoostock_backend.token.TokenRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

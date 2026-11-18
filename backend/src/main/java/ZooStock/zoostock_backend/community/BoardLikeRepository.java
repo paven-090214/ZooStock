@@ -1,11 +1,9 @@
-package ZooStock.zoostock_backend.board_like;
+package ZooStock.zoostock_backend.community;
 
-import ZooStock.zoostock_backend.holding.TokenHoldingEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 @Service
 public interface BoardLikeRepository extends JpaRepository<BoardLikeEntity, Long> {
 

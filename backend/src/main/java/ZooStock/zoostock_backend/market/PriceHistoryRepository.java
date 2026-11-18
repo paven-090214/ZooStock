@@ -1,8 +1,6 @@
-package ZooStock.zoostock_backend.price;
+package ZooStock.zoostock_backend.market;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Lock;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository

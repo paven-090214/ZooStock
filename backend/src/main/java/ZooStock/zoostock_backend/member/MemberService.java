@@ -1,6 +1,6 @@
 package ZooStock.zoostock_backend.member;
 
-import ZooStock.zoostock_backend.jwt.JwtProvider;
+import ZooStock.zoostock_backend.auth.JwtProvider;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
