@@ -23,20 +23,36 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
+        //codex
         String path = request.getServletPath();
+        String method = request.getMethod();
 
-        return path.equals("/login") ||
-                path.equals("/signup") ||
-                path.startsWith("/swagger-ui/") ||
-                path.equals("/swagger-ui.html") ||
-                path.startsWith("/v3/api-docs") ||
-                (
-                        request.getMethod().equals("GET") &&
-                                (
-                                        path.equals("/board") ||
-                                    path.matches("/board/[0-9]+")
-                                )
-                        );
+        // 회원가입·로그인은 JWT 없이 허용
+        boolean publicAuth = "POST".equals(method)
+                && (
+                path.equals("/login")
+                        || path.equals("/signup")
+        );
+
+        // 공개 조회만 허용
+        boolean publicRead = "GET".equals(method)
+                && (
+                path.equals("/token/search")
+                        || path.matches("/token/search/[0-9]+")
+                        || path.matches("/board/[0-9]+")
+        );
+
+        // Swagger 화면과 API 문서
+        boolean swagger = "GET".equals(method)
+                && (
+                path.equals("/swagger-ui.html")
+                        || path.startsWith("/swagger-ui/")
+                        || path.equals("/v3/api-docs")
+                        || path.startsWith("/v3/api-docs/")
+        );
+
+        // true: JWT 검증 생략 / false: 기존 JWT 검증 실행
+        return publicAuth || publicRead || swagger;
     }
 
     @Override

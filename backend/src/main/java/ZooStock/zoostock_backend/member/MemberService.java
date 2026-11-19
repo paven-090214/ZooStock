@@ -1,11 +1,18 @@
 package ZooStock.zoostock_backend.member;
 
 import ZooStock.zoostock_backend.auth.JwtProvider;
+import ZooStock.zoostock_backend.member.dto.MemberDTO;
+import ZooStock.zoostock_backend.trade.TokenHoldingRepository;
+import ZooStock.zoostock_backend.trade.TradeHistoryRepository;
+import ZooStock.zoostock_backend.trade.dto.TokenHoldingResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -14,15 +21,21 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
+    private final TokenHoldingRepository tokenHoldingRepository;
+    private final TradeHistoryRepository tradeHistoryRepository;
 
     public MemberService(
             MemberRepository memberRepository,
             PasswordEncoder passwordEncoder,
-            JwtProvider jwtProvider
+            JwtProvider jwtProvider,
+            TokenHoldingRepository tokenHoldingRepository,
+            TradeHistoryRepository tradeHistoryRepository
             ) {
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtProvider = jwtProvider;
+        this.tokenHoldingRepository = tokenHoldingRepository;
+        this.tradeHistoryRepository = tradeHistoryRepository;
     }
 
     @Transactional
@@ -92,5 +105,23 @@ public class MemberService {
         else {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
+    }
+
+    public List<TokenHoldingResponse> getMyToken(Long memberUid) {
+        if (memberUid == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "정보를 찾을 수 없습니다.");
+
+        return tokenHoldingRepository.findByMemberUid(memberUid)
+                .stream()
+                .map(
+                        token -> token.toTradeHistoryResponse(
+                                token.getHoldingId(),
+                                token.getMemberUid(),
+                                token.getTokenId(),
+                                token.getQuantity(),
+                                token.getBuyPriceAvg()
+                        )
+                )
+                .toList();
     }
 }

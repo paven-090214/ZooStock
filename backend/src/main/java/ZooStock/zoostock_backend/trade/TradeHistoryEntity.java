@@ -1,9 +1,12 @@
 package ZooStock.zoostock_backend.trade;
 
+import ZooStock.zoostock_backend.trade.dto.TradeHistoryResponse;
 import jakarta.persistence.*;
+import lombok.Getter;
 
 import java.util.Date;
 
+@Getter
 @Entity
 @Table(
         name = "trade_history",
@@ -62,4 +65,25 @@ public class TradeHistoryEntity {
     public void setTradeType(TradeType tradeType) {
         this.tradeType = tradeType;
     }
+
+    public TradeHistoryResponse toTradeHistoryResponse (
+            Long tradeId,
+            Long memberUid,
+            Long tokenId,
+            Long tradePrice,
+            Long quantity,
+            Date tradedAt,
+            TradeType tradeType
+    ) {
+        return new TradeHistoryResponse(
+                tradeId,
+                memberUid,
+                tokenId,
+                tradePrice,
+                quantity,
+                tradedAt,
+                tradeType
+        );
+    }
+
 }

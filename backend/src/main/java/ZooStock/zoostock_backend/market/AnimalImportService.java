@@ -51,7 +51,7 @@ public class AnimalImportService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "이미지를 찾을 수 없습니다.");
         }
 
-        Long tokenPrice = ThreadLocalRandom.current().nextLong(8000L, 11001L);
+        Long tokenPrice = ThreadLocalRandom.current().nextLong(3000L, 11001L);
 
         TokenEntity entity = new TokenEntity(
                 taxonId,

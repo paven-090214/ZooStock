@@ -1,5 +1,6 @@
 package ZooStock.zoostock_backend.market;
 
+import ZooStock.zoostock_backend.market.dto.TokenDTO;
 import jakarta.persistence.*;
 
 @Entity
@@ -78,5 +79,19 @@ public class TokenEntity {
 
     public void setImgPath(String imgPath) {
         this.imgPath = imgPath;
+    }
+
+    public TokenDTO toTokenDTO(
+            Long tokenId,
+            String tokenName,
+            Long tokenPrice,
+            String imgPath
+    ) {
+        return new TokenDTO (
+                tokenId,
+                tokenName,
+                tokenPrice,
+                imgPath
+        );
     }
 }

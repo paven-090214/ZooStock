@@ -21,6 +21,11 @@ public class PriceHistoryEntity {
     @Column(name = "recorded_at")
     private Date recordedAt;
 
+    public void setHistoryId(Long historyId) {
+        this.historyId = historyId;
+    }
+
+
     public Long getHistoryId() {
         return historyId;
     }
@@ -48,5 +53,6 @@ public class PriceHistoryEntity {
     public void setRecordedAt(Date recordedAt) {
         this.recordedAt = recordedAt;
     }
+
 }
 

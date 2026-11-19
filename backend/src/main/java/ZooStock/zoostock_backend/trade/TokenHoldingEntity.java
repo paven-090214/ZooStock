@@ -1,9 +1,12 @@
 package ZooStock.zoostock_backend.trade;
 
+import ZooStock.zoostock_backend.trade.dto.TokenHoldingResponse;
 import jakarta.persistence.*;
+import lombok.Getter;
 
 import java.math.BigDecimal;
 
+@Getter
 @Entity
 @Table(
         name = "token_holding",
@@ -62,5 +65,21 @@ public class TokenHoldingEntity {
 
     public void setTokenId(Long tokenId) {
         this.tokenId = tokenId;
+    }
+
+    public TokenHoldingResponse toTradeHistoryResponse(
+            Long holdingId,
+            Long memberUid,
+            Long tokenId,
+            Long quantity,
+            BigDecimal buyPriceAvg
+    ) {
+        return new TokenHoldingResponse(
+                holdingId,
+                memberUid,
+                tokenId,
+                quantity,
+                buyPriceAvg
+        );
     }
 }

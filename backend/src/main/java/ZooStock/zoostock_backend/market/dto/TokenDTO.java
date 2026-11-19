@@ -1,10 +1,20 @@
-package ZooStock.zoostock_backend.market;
+package ZooStock.zoostock_backend.market.dto;
 
 public class TokenDTO {
     private Long tokenId;
     private String tokenName;
     private Long tokenPrice;
     private String imgPath;
+
+    public TokenDTO() {
+    }
+
+    public TokenDTO(Long tokenId, String tokenName, Long tokenPrice, String imgPath) {
+        this.tokenId = tokenId;
+        this.tokenName = tokenName;
+        this.tokenPrice = tokenPrice;
+        this.imgPath = imgPath;
+    }
 
     public Long getTokenId() {
         return tokenId;

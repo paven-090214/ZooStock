@@ -1,4 +1,4 @@
-package ZooStock.zoostock_backend.member;
+package ZooStock.zoostock_backend.member.dto;
 
 import java.util.Date;
 
