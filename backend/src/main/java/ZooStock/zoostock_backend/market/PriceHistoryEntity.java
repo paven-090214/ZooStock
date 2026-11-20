@@ -1,9 +1,15 @@
 package ZooStock.zoostock_backend.market;
 
+import ZooStock.zoostock_backend.market.dto.PriceHistoryResponse;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "price_history")
 public class PriceHistoryEntity {
@@ -19,40 +25,19 @@ public class PriceHistoryEntity {
     private Long tokenId;
 
     @Column(name = "recorded_at")
-    private Date recordedAt;
-
-    public void setHistoryId(Long historyId) {
-        this.historyId = historyId;
+    private LocalDateTime recordedAt;
+    public PriceHistoryResponse toPriceHistoryResponse(
+            Long historyId,
+            Long price,
+            Long tokenId,
+            LocalDateTime recordedAt
+    ) {
+        return new PriceHistoryResponse(
+                historyId,
+                price,
+                tokenId,
+                recordedAt
+        );
     }
-
-
-    public Long getHistoryId() {
-        return historyId;
-    }
-
-    public Long getPrice() {
-        return price;
-    }
-
-    public void setPrice(Long price) {
-        this.price = price;
-    }
-
-    public Long getTokenId() {
-        return tokenId;
-    }
-
-    public void setTokenId(Long tokenId) {
-        this.tokenId = tokenId;
-    }
-
-    public Date getRecordedAt() {
-        return recordedAt;
-    }
-
-    public void setRecordedAt(Date recordedAt) {
-        this.recordedAt = recordedAt;
-    }
-
 }
 

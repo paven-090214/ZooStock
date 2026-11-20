@@ -14,4 +14,6 @@ public interface TokenRepository extends JpaRepository<TokenEntity, Long>
     public List<TokenEntity> findByTokenNameContaining(String name);
 
     public Optional<TokenEntity> findByTokenId(Long tokenId);
+
+    public boolean existsByTokenId(Long tokenId);
 }

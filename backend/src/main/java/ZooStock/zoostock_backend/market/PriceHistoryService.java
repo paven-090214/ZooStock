@@ -1,10 +1,14 @@
 package ZooStock.zoostock_backend.market;
 
+import ZooStock.zoostock_backend.market.dto.PriceHistoryResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -27,7 +31,6 @@ public class PriceHistoryService {
     @Transactional
     public void updatePrice() {
         List<TokenEntity> tokenList = tokenRepository.findAll();
-        Date date = new Date();
 
         for (TokenEntity tokenEntity : tokenList) {
             PriceHistoryEntity priceHistoryEntity = new PriceHistoryEntity();
@@ -42,10 +45,58 @@ public class PriceHistoryService {
             tokenEntity.setTokenPrice(value.setScale(0, RoundingMode.HALF_UP).longValueExact());
 
             priceHistoryEntity.setPrice(tokenEntity.getTokenPrice());
-            priceHistoryEntity.setRecordedAt(date);
+            priceHistoryEntity.setRecordedAt(LocalDateTime.now());
             priceHistoryEntity.setTokenId(tokenEntity.getTokenId());
             tokenRepository.save(tokenEntity);
             priceHistoryRepository.save(priceHistoryEntity);
         }
+    }
+
+    public List<PriceHistoryResponse> getTokenHistory (Long tokenId, String time) {
+
+        if (tokenId == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "토큰의 검색 결과가 없습니다.");
+
+
+        if (time == null || time.isBlank())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "정해진 시간을 입력해주세요.");
+
+        boolean exists = tokenRepository.existsByTokenId(tokenId);
+
+        if (!exists)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "토큰을 찾을 수 없습니다.");
+
+        LocalDateTime end = LocalDateTime.now();
+        LocalDateTime start;
+
+        switch (time) {
+            case "1h":
+                start = end.minusHours(1);
+                break;
+            case "5h":
+                start = end.minusHours(5);
+                break;
+            case "1d":
+                start = end.minusDays(1);
+                break;
+            default:
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "기간 설정이 잘못되었습니다.");
+        }
+
+        return priceHistoryRepository.findByTokenIdAndRecordedAtGreaterThanEqualAndRecordedAtLessThanOrderByRecordedAtAsc(
+                tokenId,
+                start,
+                        end
+                        )
+                .stream()
+                .map(
+                        priceHistory -> priceHistory.toPriceHistoryResponse(
+                                priceHistory.getHistoryId(),
+                                priceHistory.getPrice(),
+                                priceHistory.getTokenId(),
+                                priceHistory.getRecordedAt()
+                        )
+                )
+                .toList();
     }
 }

@@ -40,6 +40,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 path.equals("/token/search")
                         || path.matches("/token/search/[0-9]+")
                         || path.matches("/board/[0-9]+")
+                        || path.matches("/token/[0-9]+")
         );
 
         // Swagger 화면과 API 문서
