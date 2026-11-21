@@ -37,7 +37,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 공개 조회만 허용
         boolean publicRead = "GET".equals(method)
                 && (
-                path.equals("/token/search")
+                path.equals("/token")
+                        || path.equals("/token/all")
+                        || path.equals("/token/search")
                         || path.matches("/token/search/[0-9]+")
                         || path.matches("/board/[0-9]+")
                         || path.matches("/token/[0-9]+")

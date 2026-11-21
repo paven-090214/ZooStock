@@ -1,5 +1,7 @@
 package ZooStock.zoostock_backend.market;
 
+import ZooStock.zoostock_backend.market.dto.DailyRankingResponse;
+import ZooStock.zoostock_backend.market.dto.OverviewResponse;
 import ZooStock.zoostock_backend.market.dto.PriceHistoryResponse;
 import ZooStock.zoostock_backend.market.dto.TokenDTO;
 import org.springframework.http.ResponseEntity;
@@ -46,5 +48,21 @@ public class TokenController {
             @RequestParam("history") String time
     ) {
         return ResponseEntity.ok(priceHistoryService.getTokenHistory(id, time));
+    }
+
+    @GetMapping("/token")
+    public ResponseEntity<OverviewResponse> getDailyRankingResponse() {
+        OverviewResponse response = new OverviewResponse(
+                priceHistoryService.getDailyChangeRanking(),
+                priceHistoryService.getRandomTokens()
+        );
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/token/all")
+    public ResponseEntity<List<TokenDTO>> findAllToken(
+            @RequestParam(value = "sort", defaultValue = "nameAsc") String value
+    ) {
+        return ResponseEntity.ok(tokenService.findAllToken(value));
     }
 }

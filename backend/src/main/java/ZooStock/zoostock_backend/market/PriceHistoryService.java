@@ -1,6 +1,9 @@
 package ZooStock.zoostock_backend.market;
 
+import ZooStock.zoostock_backend.market.dto.DailyRankingResponse;
 import ZooStock.zoostock_backend.market.dto.PriceHistoryResponse;
+import ZooStock.zoostock_backend.market.dto.TokenChangeProjection;
+import ZooStock.zoostock_backend.market.dto.TokenDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -99,4 +102,28 @@ public class PriceHistoryService {
                 )
                 .toList();
     }
+
+    public DailyRankingResponse getDailyChangeRanking () {
+        List<TokenChangeProjection> gainers = priceHistoryRepository.findDailyChangeRates("UP");
+        List<TokenChangeProjection> losers = priceHistoryRepository.findDailyChangeRates("DOWN");
+        return new DailyRankingResponse(
+                gainers,
+                losers
+        );
+    }
+
+    public List<TokenDTO> getRandomTokens() {
+        return priceHistoryRepository.getRandomTokens()
+                .stream()
+                .map(
+                        token -> token.toTokenDTO(
+                                token.getTokenId(),
+                                token.getTokenName(),
+                                token.getTokenPrice(),
+                                token.getImgPath()
+                        )
+                )
+                .toList();
+    }
+
 }
