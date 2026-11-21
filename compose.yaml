@@ -1,0 +1,59 @@
+name: zoostock
+services:
+  backend:
+    image: zoostock-backend:${ZOOSTOCK_RELEASE:-local}
+    build: ./backend
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      SERVER_ADDRESS: 127.0.0.1
+      SERVER_PORT: 8079
+      TZ: Asia/Seoul
+      JAVA_TOOL_OPTIONS: -Duser.timezone=Asia/Seoul
+      DB_HOST: 127.0.0.1
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-zoostock}
+      DB_USERNAME: ${DB_USERNAME:?Set DB_USERNAME in .env}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      JWT_SECRET: ${JWT_SECRET:?Set a Base64 JWT_SECRET in .env}
+      # CURRENT_DATE와 Java LocalDateTime의 날짜 기준을 일치시킨다.
+      SPRING_DATASOURCE_HIKARI_CONNECTION_INIT_SQL: SET TIME ZONE 'Asia/Seoul'
+      ANIMAL_IMPORT_ENABLED: ${ANIMAL_IMPORT_ENABLED:-true}
+    healthcheck:
+      test:
+        [
+          CMD,
+          curl,
+          --fail,
+          --silent,
+          --max-time,
+          '5',
+          'http://127.0.0.1:8079/token/search?name=__healthcheck__',
+        ]
+      interval: 30s
+      timeout: 8s
+      retries: 5
+      start_period: 240s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+  frontend:
+    image: zoostock-frontend:${ZOOSTOCK_RELEASE:-local}
+    build: ./frontend
+    network_mode: host
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, wget, --quiet, --spider, 'http://172.30.1.90:8080/']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'

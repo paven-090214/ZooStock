@@ -1,0 +1,20 @@
+package ZooStock.zoostock_backend.market.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Setter
+@Getter
+@AllArgsConstructor
+public class TokenChangeProjection {
+    private Long tokenId;
+    private String tokenName;
+    private Long currentPrice;
+    private Long startPrice;
+    private BigDecimal changeRate;
+
+}

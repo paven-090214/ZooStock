@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "test:browser": "node tests/browser-check.cjs",
     "preview": "vite preview"
   },
   "dependencies": {

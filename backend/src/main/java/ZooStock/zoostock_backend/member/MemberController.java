@@ -1,21 +1,28 @@
 package ZooStock.zoostock_backend.member;
 
-import org.springframework.data.repository.query.Param;
+import ZooStock.zoostock_backend.member.dto.MemberDTO;
+import ZooStock.zoostock_backend.trade.dto.TokenHoldingResponse;
+import ZooStock.zoostock_backend.trade.dto.TradeHistoryResponse;
+import ZooStock.zoostock_backend.trade.TradeHistoryService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
+import java.util.List;
+
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 public class MemberController {
 
     private final MemberService memberService;
+    private final TradeHistoryService tradeHistoryService;
 
     public MemberController(
-            MemberService memberService
+            MemberService memberService,
+            TradeHistoryService tradeHistoryService
     ) {
         this.memberService = memberService;
+        this.tradeHistoryService = tradeHistoryService;
     }
 
     @PostMapping("/signup")
@@ -32,5 +39,23 @@ public class MemberController {
     ) {
         String jwtToken = memberService.login(memberDTO);
         return ResponseEntity.ok(jwtToken);
+    }
+
+    @GetMapping("/mypage")
+    public ResponseEntity<List<TokenHoldingResponse>> getMyPage(
+            @RequestAttribute("memberUid") Long memberUid
+    ) {
+        return ResponseEntity.ok(
+                memberService.getMyToken(memberUid)
+        );
+    }
+
+    @GetMapping("/mypage/history")
+    public ResponseEntity<List<TradeHistoryResponse>> getMyHistory(
+            @RequestAttribute("memberUid") Long memberUid
+    ) {
+        return ResponseEntity.ok(
+                tradeHistoryService.getMemebrTokenList(memberUid)
+        );
     }
 }

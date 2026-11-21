@@ -1,14 +1,67 @@
-import { BrowserRouter, Route, Routes } from 'react-router'
-import App from '../App.jsx'
+import { BrowserRouter, Link, Navigate, Outlet, Route, Routes, useLocation } from 'react-router'
+import AuthProvider from '../auth/AuthProvider'
+import { useAuth } from '../auth/auth'
+import Layout from '../components/Layout'
+import Home from '../pages/Home'
+import Market from '../pages/Market'
+import TokenList from '../pages/TokenList'
+import TokenDetail from '../pages/TokenDetail'
+import AuthPage from '../pages/AuthPage'
+import Portfolio from '../pages/Portfolio'
+import { useEffect } from 'react'
 
-function AppRouter() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<App />} />
-      </Routes>
-    </BrowserRouter>
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+  return null
+}
+
+function RequireAuth() {
+  const { token } = useAuth()
+  const location = useLocation()
+  return token ? (
+    <Outlet />
+  ) : (
+    <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />
   )
 }
 
-export default AppRouter
+export default function AppRouter() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <ScrollToTop />
+        <Routes>
+          <Route element={<Layout />}>
+            <Route index element={<Home />} />
+            <Route path="token" element={<Market />} />
+            <Route path="token/all" element={<TokenList />} />
+            <Route path="token/search" element={<TokenList search />} />
+            <Route path="token/:id" element={<TokenDetail />} />
+            <Route path="login" element={<AuthPage key="login" />} />
+            <Route path="signup" element={<AuthPage key="signup" signup />} />
+            <Route element={<RequireAuth />}>
+              <Route path="mypage" element={<Portfolio />} />
+              <Route path="mypage/history" element={<Portfolio history />} />
+            </Route>
+            <Route
+              path="*"
+              element={
+                <section className="not-found">
+                  <span className="eyebrow">404 / LOST IN THE WILD</span>
+                  <h1>길을 조금 벗어났네요.</h1>
+                  <p>찾으시는 페이지가 없습니다.</p>
+                  <Link className="button" to="/">
+                    홈으로 돌아가기 ↗
+                  </Link>
+                </section>
+              }
+            />
+          </Route>
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
+  )
+}

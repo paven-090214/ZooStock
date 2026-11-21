@@ -5,6 +5,8 @@ jwt:
   secret: ${JWT_SECRET}
 
 spring:
+  config:
+    import: "classpath:application_zoostock.yaml"
   application:
     name: zoostock-backend
 
@@ -18,5 +20,3 @@ spring:
       ddl-auto: validate
   flyway:
     enabled: true
-    baseline-on-migrate: true
-    baseline-version: "2"

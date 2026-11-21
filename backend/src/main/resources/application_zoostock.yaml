@@ -1,0 +1,191 @@
+# ZooStock application.yaml
+# This file preserves the backend settings from the suhwan branch.
+# Initial taxon IDs are the 10 entries currently listed in AnimalApiGet.java.
+# Run generate_animal_yaml.py to create a VERIFIED 150-ID application_zoostock_150.yaml.
+
+server:
+  port: 8079
+
+jwt:
+  secret: ${JWT_SECRET}
+
+spring:
+  application:
+    name: zoostock-backend
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
+animal:
+  import:
+    enabled: true
+    target-counts:
+      Mammalia: 43
+      Aves: 33
+      Reptilia: 28
+      Actinopterygii: 28
+      Amphibia: 18
+    taxon-ids:
+      # Mammalia: 43 species
+      - 46017
+      - 42223
+      - 43111
+      - 41663
+      - 118552
+      - 43584
+      - 46020
+      - 42051
+      - 47144
+      - 42069
+      - 42220
+      - 46217
+      - 46260
+      - 46001
+      - 42184
+      - 41638
+      - 43794
+      - 42652
+      - 46095
+      - 522193
+      - 180007
+      - 45763
+      - 42134
+      - 43151
+      - 43115
+      - 74113
+      - 41976
+      - 43128
+      - 43042
+      - 209233
+      - 41880
+      - 42076
+      - 42983
+      - 204114
+      - 41740
+      - 43997
+      - 41708
+      - 41777
+      - 41566
+      - 44576
+      - 1647419
+      - 42888
+      - 44026
+      # Aves: 33 species
+      - 6930
+      - 13858
+      - 7089
+      - 4956
+      - 12727
+      - 144455
+      - 9083
+      - 5212
+      - 199840
+      - 14850
+      - 9744
+      - 3454
+      - 4756
+      - 9100
+      - 4954
+      - 12716
+      - 203153
+      - 10094
+      - 14886
+      - 5305
+      - 11901
+      - 8021
+      - 1454382
+      - 792988
+      - 116999
+      - 8229
+      - 10070
+      - 145310
+      - 145245
+      - 13094
+      - 8010
+      - 6921
+      - 906
+      # Reptilia: 28 species
+      - 36204
+      - 116461
+      - 36514
+      - 39782
+      - 39682
+      - 28362
+      - 55990
+      - 26159
+      - 35342
+      - 39771
+      - 28562
+      - 1661279
+      - 29305
+      - 34435
+      - 73788
+      - 35303
+      - 51940
+      - 39659
+      - 343021
+      - 33602
+      - 36202
+      - 36094
+      - 31281
+      - 35453
+      - 35912
+      - 966787
+      - 68492
+      - 40085
+      # Actinopterygii: 28 species
+      - 49591
+      - 1439808
+      - 53911
+      - 187316
+      - 47516
+      - 58636
+      - 59115
+      - 49614
+      - 49590
+      - 58612
+      - 47518
+      - 101204
+      - 530375
+      - 58662
+      - 55387
+      - 49596
+      - 81554
+      - 85365
+      - 83290
+      - 58627
+      - 109062
+      - 49402
+      - 118663
+      - 50972
+      - 58637
+      - 48403
+      - 118667
+      - 106222
+      # Amphibia: 18 species
+      - 64968
+      - 65982
+      - 65979
+      - 326296
+      - 27186
+      - 25591
+      - 24259
+      - 66012
+      - 66003
+      - 24268
+      - 27805
+      - 1668858
+      - 1668923
+      - 64977
+      - 65849
+      - 27818
+      - 27726
+      - 62345

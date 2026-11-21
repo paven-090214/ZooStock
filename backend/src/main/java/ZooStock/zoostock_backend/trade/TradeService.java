@@ -1,13 +1,13 @@
 package ZooStock.zoostock_backend.trade;
 
-import ZooStock.zoostock_backend.holding.TokenHoldingEntity;
-import ZooStock.zoostock_backend.holding.TokenHoldingRepository;
 import ZooStock.zoostock_backend.member.MemberEntity;
 import ZooStock.zoostock_backend.member.MemberRepository;
-import ZooStock.zoostock_backend.token.TokenEntity;
-import ZooStock.zoostock_backend.token.TokenRepository;
+import ZooStock.zoostock_backend.market.TokenEntity;
+import ZooStock.zoostock_backend.market.TokenRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -44,7 +44,7 @@ public class TradeService {
             throw new IllegalArgumentException("매도 수량은 1주 이상이여야 합니다.");
         }
         Optional<TokenEntity> tokenOptional = tokenRepository.findById(tokenId);
-        Optional<MemberEntity> memberOptional = memberRepository.findByIdForUpdate(memberUid);
+        Optional<MemberEntity> memberOptional = memberRepository.findById(memberUid);
         Optional<TokenHoldingEntity> tokenHoldingOptional =
                 tokenHoldingRepository.findByMemberUidAndTokenId(memberUid, tokenId);
         TradeHistoryEntity tradeHistoryEntity = new TradeHistoryEntity();
@@ -52,7 +52,7 @@ public class TradeService {
         Date date = new Date();
 
         if (tokenHoldingOptional.isEmpty() || memberOptional.isEmpty()) {
-            throw new IllegalArgumentException("존재하지 않는 사용자 또는 보유하고 있지 않은 토큰 입니다.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "존재하지 않는 사용자 또는 보유하고 있지 않은 토큰 입니다.");
         }
 
         TokenHoldingEntity tokenHoldingEntity = tokenHoldingOptional.get();
@@ -60,11 +60,11 @@ public class TradeService {
         Long holdingQuantity = tokenHoldingEntity.getQuantity();
 
         if (tokenOptional.isEmpty()) {
-            throw new IllegalArgumentException("존재하지 않는 토큰입니다.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "존재하지 않는 토큰입니다.");
         }
 
         if (holdingQuantity < quantity) {
-             throw new IllegalArgumentException("코인이 부족합니다.");
+             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "코인이 부족합니다.");
          }
 
         TokenEntity tokenEntity = tokenOptional.get();
@@ -98,17 +98,17 @@ public class TradeService {
             Long quantity
     ) {
         if (quantity <= 0) {
-            throw new IllegalArgumentException("매수 수량은 1주 이상이여야 합니다.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "매수 수량은 1주 이상이여야 합니다.");
         }
 
-        Optional<MemberEntity> memberEntity = memberRepository.findByIdForUpdate(memberUid);
+        Optional<MemberEntity> memberEntity = memberRepository.findById(memberUid);
         Optional<TokenEntity> tokenEntity = tokenRepository.findById(tokenId);
         Optional<TokenHoldingEntity> optionalTokenHoldingEntity =
                 tokenHoldingRepository.findByMemberUidAndTokenId(memberUid, tokenId);
         TradeHistoryEntity tradeHistoryEntity = new TradeHistoryEntity();
 
         if (tokenEntity.isEmpty() || memberEntity.isEmpty()) {
-            throw new IllegalArgumentException("토큰 혹은 사용자 초기화 오류");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "토큰 혹은 사용자 초기화 오류");
         }
         TokenEntity token = tokenEntity.get();
         MemberEntity member = memberEntity.get();
@@ -116,7 +116,7 @@ public class TradeService {
         BigDecimal avg = BigDecimal.valueOf(total / quantity);
 
         if (member.getMemberPoint() < total) {
-            throw new IllegalArgumentException("포인트가 부족합니다.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "포인트가 부족합니다.");
         }
 
         member.setMemberPoint(member.getMemberPoint() - total);

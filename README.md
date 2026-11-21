@@ -19,8 +19,15 @@
 
 ## Spring Boot Dependencies
 
-- Spring Web MVC — REST API 구현
-- Spring Data JPA — 데이터베이스 접근 및 ORM
-- PostgreSQL Driver — PostgreSQL 연결
-- Spring Boot DevTools — 개발 편의 기능
-- Flyway Migration — 데이터베이스 스키마 변경 이력 관리
+- Spring Web
+- Spring Data JPA
+- PostgreSQL Driver
+- SpringBootDevTools
+- Flyway Migration
+- Spring Security
+- JJWT library
+- Swagger UI
+- lombok
+
+## 사용 API
+- iNaturalist API
