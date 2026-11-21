@@ -1,7 +1,5 @@
-import './App.css'
+import AppRouter from './router/AppRouter'
 
-function App() {
-  return <h1>메인페이지</h1>
+export default function App() {
+  return <AppRouter />
 }
-
-export default App

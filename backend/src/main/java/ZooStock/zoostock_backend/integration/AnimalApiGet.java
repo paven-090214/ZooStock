@@ -1,31 +1,44 @@
 package ZooStock.zoostock_backend.integration;
 
+import ZooStock.zoostock_backend.config.AnimalImportProperties;
 import ZooStock.zoostock_backend.market.AnimalImportService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
 @Component
 public class AnimalApiGet implements CommandLineRunner {
     private final AnimalImportService animalImportService;
+    private final AnimalImportProperties animalImportProperties;
 
     public AnimalApiGet (
-            AnimalImportService animalImportService
+            AnimalImportService animalImportService,
+            AnimalImportProperties animalImportProperties
     ) {
         this.animalImportService = animalImportService;
+        this.animalImportProperties = animalImportProperties;
     }
 
     @Override
-    public void run(String... args) {
+    public void run(String... args) throws InterruptedException {
 
-        List<Long> taxonIds = List.of(
-                41964L, 41967L, 41963L, 41970L, 41955L,
-                42048L, 42069L, 41641L, 41644L, 41659L
-        );
+        if (!animalImportProperties.enabled()) {
+            return;
+        }
 
-        for (Long taxonId : taxonIds) {
-            animalImportService.getAnimal(taxonId);
+        for (Long taxonId : animalImportProperties.taxonIds()) {
+            try {
+                animalImportService.getAnimal(taxonId);
+            } catch (ResponseStatusException | RestClientException e) {
+                System.err.println(
+                        "동물 등록 실패: " + taxonId + " / " + e.getMessage()
+                );
+            }
+
+            Thread.sleep(1100);
         }
     }
 }

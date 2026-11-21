@@ -5,6 +5,8 @@ jwt:
   secret: ${JWT_SECRET}
 
 spring:
+  config:
+    import: "classpath:application_zoostock.yaml"
   application:
     name: zoostock-backend
 
