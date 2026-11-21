@@ -2,6 +2,7 @@ package ZooStock.zoostock_backend.member;
 
 import ZooStock.zoostock_backend.auth.JwtProvider;
 import ZooStock.zoostock_backend.member.dto.MemberDTO;
+import ZooStock.zoostock_backend.member.dto.MemberOverviewResponse;
 import ZooStock.zoostock_backend.trade.TokenHoldingRepository;
 import ZooStock.zoostock_backend.trade.TradeHistoryRepository;
 import ZooStock.zoostock_backend.trade.dto.TokenHoldingResponse;
@@ -121,5 +122,22 @@ public class MemberService {
                         )
                 )
                 .toList();
+    }
+
+    public MemberOverviewResponse OverViewMember(Long memberUid) {
+
+        if (memberUid == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원 인증이 되지 않았습니다.");
+
+        return memberRepository.findById(memberUid)
+                .map(
+                        member -> member.toMemberOverviewResponse(
+                                member.getMemberName(),
+                                member.getMemberPoint()
+                        )
+                )
+                .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원 조회 실패")
+        );
     }
 }

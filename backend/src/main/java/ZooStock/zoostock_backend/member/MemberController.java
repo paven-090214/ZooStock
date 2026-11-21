@@ -1,6 +1,7 @@
 package ZooStock.zoostock_backend.member;
 
 import ZooStock.zoostock_backend.member.dto.MemberDTO;
+import ZooStock.zoostock_backend.member.dto.MemberOverviewResponse;
 import ZooStock.zoostock_backend.trade.dto.TokenHoldingResponse;
 import ZooStock.zoostock_backend.trade.dto.TradeHistoryResponse;
 import ZooStock.zoostock_backend.trade.TradeHistoryService;
@@ -57,5 +58,12 @@ public class MemberController {
         return ResponseEntity.ok(
                 tradeHistoryService.getMemebrTokenList(memberUid)
         );
+    }
+
+    @GetMapping("/mypage/overview")
+    public ResponseEntity<MemberOverviewResponse> OverViewMember(
+            @RequestAttribute("memberUid") Long memberUid
+    ) {
+        return ResponseEntity.ok(memberService.OverViewMember(memberUid));
     }
 }

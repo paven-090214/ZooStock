@@ -1,5 +1,7 @@
 package ZooStock.zoostock_backend.member;
 
+import ZooStock.zoostock_backend.member.dto.MemberDTO;
+import ZooStock.zoostock_backend.member.dto.MemberOverviewResponse;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -41,4 +43,14 @@ public class MemberEntity {
     @Version
     @Column(name = "version")
     private Long version;
+
+    public MemberOverviewResponse toMemberOverviewResponse(
+            String memberName,
+            Long memberPoint
+    ) {
+        return new MemberOverviewResponse(
+                memberName,
+                memberPoint
+        );
+    }
 }

@@ -1,8 +1,9 @@
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import { useAuth } from '../auth/auth'
+import { points } from '../lib/format'
 
 export default function Layout() {
-  const { token, expired, signOut } = useAuth()
+  const { token, expired, signOut, member, memberLoading, memberError, refreshMember } = useAuth()
   const navigate = useNavigate()
   function search(event) {
     event.preventDefault()
@@ -44,6 +45,30 @@ export default function Layout() {
           <nav className="account-nav" aria-label="회원 메뉴">
             {token ? (
               <>
+                <div className="member-summary" aria-label="회원 정보" aria-live="polite">
+                  {member ? (
+                    <>
+                      <strong className="member-name" title={member.memberName}>
+                        {member.memberName}님
+                      </strong>
+                      <span className="member-balance">{points(member.point)} P</span>
+                    </>
+                  ) : (
+                    <span className="member-status">
+                      {memberLoading ? '회원 정보 불러오는 중…' : '회원 정보 조회 실패'}
+                    </span>
+                  )}
+                  {memberError && (
+                    <button
+                      className="text-button member-retry"
+                      onClick={refreshMember}
+                      title={memberError.message}
+                      aria-label="회원 정보 다시 조회"
+                    >
+                      {member ? '잔액 갱신 실패 · 다시 조회' : '다시 조회'} ↻
+                    </button>
+                  )}
+                </div>
                 <NavLink to="/mypage">내 정보</NavLink>
                 <button
                   className="text-button"

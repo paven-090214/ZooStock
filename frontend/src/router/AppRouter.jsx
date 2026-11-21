@@ -28,6 +28,21 @@ function RequireAuth() {
   )
 }
 
+// 로그인한 사용자가 회원가입·로그인 화면에 다시 들어가지 않도록 한다.
+function GuestOnly() {
+  const { token } = useAuth()
+  const location = useLocation()
+  const from = location.state?.from
+  const destination =
+    typeof from === 'string' &&
+    from.startsWith('/') &&
+    !from.startsWith('//') &&
+    !/^\/(login|signup)([/?#]|$)/.test(from)
+      ? from
+      : '/token'
+  return token ? <Navigate to={destination} replace /> : <Outlet />
+}
+
 export default function AppRouter() {
   return (
     <BrowserRouter>
@@ -40,8 +55,10 @@ export default function AppRouter() {
             <Route path="token/all" element={<TokenList />} />
             <Route path="token/search" element={<TokenList search />} />
             <Route path="token/:id" element={<TokenDetail />} />
-            <Route path="login" element={<AuthPage key="login" />} />
-            <Route path="signup" element={<AuthPage key="signup" signup />} />
+            <Route element={<GuestOnly />}>
+              <Route path="login" element={<AuthPage key="login" />} />
+              <Route path="signup" element={<AuthPage key="signup" signup />} />
+            </Route>
             <Route element={<RequireAuth />}>
               <Route path="mypage" element={<Portfolio />} />
               <Route path="mypage/history" element={<Portfolio history />} />

@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { api } from '../lib/api'
 import { points } from '../lib/format'
@@ -46,17 +46,35 @@ function Ranking({ title, subtitle, tokens, kind }) {
 
 export default function Market() {
   const fixedIds = useRef(null)
+  const reselectRequested = useRef(false)
+  const [selecting, setSelecting] = useState(false)
   const loader = useCallback(async (signal) => {
-    const overview = await api('/token', { signal })
-    if (signal.aborted) return null
-    if (fixedIds.current === null)
-      fixedIds.current = overview.randomTokens.map((token) => token.tokenId)
-    const randomTokens = await Promise.all(
-      fixedIds.current.map((id) => api(`/token/search/${id}`, { signal })),
-    )
-    return { ...overview, randomTokens }
+    // 처음 진입하거나 사용자가 버튼을 누른 경우에만 서버의 새 추첨을 사용한다.
+    const reselect = fixedIds.current === null || reselectRequested.current
+    try {
+      const overview = await api('/token', { signal })
+      if (signal.aborted) return null
+      const randomTokens = reselect
+        ? overview.randomTokens
+        : await Promise.all(fixedIds.current.map((id) => api(`/token/search/${id}`, { signal })))
+      if (signal.aborted) return null
+      // 성공한 응답만 반영한다. 실패하면 기존 카드와 선택을 유지한다.
+      fixedIds.current = randomTokens.map((token) => token.tokenId)
+      return { ...overview, randomTokens }
+    } finally {
+      if (!signal.aborted) {
+        reselectRequested.current = false
+        setSelecting(false)
+      }
+    }
   }, [])
   const resource = useResource('market', loader, 30000)
+  function refreshRandomTokens() {
+    if (selecting) return
+    reselectRequested.current = true
+    setSelecting(true)
+    resource.refresh()
+  }
   return (
     <>
       <div className="page-heading">
@@ -71,7 +89,9 @@ export default function Market() {
           전체 토큰 보기 ↗
         </Link>
       </div>
-      <RefreshStatus resource={resource} />
+      <RefreshStatus
+        resource={{ ...resource, refresh: refreshRandomTokens, refreshing: selecting }}
+      />
       <ResourceState resource={resource} />
       {resource.data && (
         <>
@@ -81,7 +101,14 @@ export default function Market() {
                 새롭게 만나는 동물들{' '}
                 <span className="count-badge">{resource.data.randomTokens.length}</span>
               </h2>
-              <span>RANDOM PICKS</span>
+              <button
+                className="text-button random-picks-refresh"
+                onClick={refreshRandomTokens}
+                disabled={selecting}
+                aria-label="랜덤 동물 새로고침"
+              >
+                {selecting ? '새 동물 불러오는 중…' : '다른 동물 보기 ↻'}
+              </button>
             </div>
             {!resource.data.randomTokens.length ? (
               <div className="state-box">등록된 동물 토큰이 아직 없어요.</div>

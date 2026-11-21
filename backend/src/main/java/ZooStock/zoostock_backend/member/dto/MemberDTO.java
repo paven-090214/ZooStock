@@ -1,7 +1,12 @@
 package ZooStock.zoostock_backend.member.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
 import java.util.Date;
 
+@AllArgsConstructor
+@NoArgsConstructor
 public class MemberDTO {
     private Long memberUid;
     private String memberName;

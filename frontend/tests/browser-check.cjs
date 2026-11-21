@@ -16,6 +16,9 @@ let qaBrowser
   const tokens = ['Lion', 'Tiger', 'Leopard', 'Jaguar', 'Cheetah', 'Gray Wolf'].map((name, i) => ({ tokenId: i + 1, tokenName: name, tokenPrice: 9000 + i * 400, imgPath: '' }))
   const holdings = [{ holdingId: 1, memberUid: 1, tokenId: 1, quantity: 12, buyPriceAvg: 8200 }]
   let overviewRequests = 0, orders = 0, orderMode = 'conflict', protectedHeaders = [], force401 = false, chartMode = 'normal', marketFailure = false
+  let memberPoint = 100000, memberRequests = 0, memberFailure = false
+  let memberName = '테스트회원'
+  let randomOffset = 0, marketDelay = 0
   const requests = []
   await page.route('**/api/**', async (route) => {
     const request = route.request(), url = new URL(request.url()), endpoint = url.pathname.replace('/api', '')
@@ -28,9 +31,10 @@ let qaBrowser
     if (endpoint === '/signup') return fulfill('회원가입 성공')
     if (endpoint === '/token') {
       overviewRequests++
+      if (marketDelay) await new Promise((resolve) => setTimeout(resolve, marketDelay))
       if (marketFailure) return fulfill({ message: '테스트 갱신 실패' }, 503)
       const ranking = (token, index) => ({ ...token, currentPrice: token.tokenPrice, startPrice: 8500, changeRate: index ? -2.6 : 7.2 })
-      return fulfill({ randomTokens: overviewRequests > 1 ? tokens.slice(1) : tokens.slice(0, 5), dailyRankingResponse: { gainers: tokens.slice(0, 5).map(ranking), losers: tokens.slice(1).map(ranking) } })
+      return fulfill({ randomTokens: randomOffset ? tokens.slice(1) : tokens.slice(0, 5), dailyRankingResponse: { gainers: tokens.slice(0, 5).map(ranking), losers: tokens.slice(1).map(ranking) } })
     }
     if (endpoint === '/token/all') {
       const sort = url.searchParams.get('sort') || 'nameAsc'
@@ -48,12 +52,19 @@ let qaBrowser
       protectedHeaders.push(request.headers().authorization)
       if (force401) return fulfill({ message: 'JWT인증에 실패했습니다.' }, 401)
     }
+    if (endpoint === '/mypage/overview') {
+      memberRequests++
+      if (memberFailure) return fulfill({ message: '회원 요약 조회 실패' }, 503)
+      return fulfill({ memberName, point: memberPoint })
+    }
     if (endpoint === '/mypage') return fulfill(holdings)
     if (endpoint === '/mypage/history') return fulfill([{ tradeId: 1, memberUid: 1, tokenId: 1, quantity: 12, tradePrice: 8200, tradeType: 'BUY', tradedAt: '2026-11-21T03:00:00Z' }])
     if (endpoint.startsWith('/trade/')) {
       orders++
       await new Promise((resolve) => setTimeout(resolve, 250))
-      return orderMode === 'conflict' ? fulfill('다른 거래가 먼저 처리되었습니다. 다시 시도해주세요.', 409) : fulfill('매수에 성공했습니다.')
+      if (orderMode === 'conflict') return fulfill('다른 거래가 먼저 처리되었습니다. 다시 시도해주세요.', 409)
+      memberPoint += endpoint.endsWith('/sell') ? 9000 : -9000
+      return fulfill(endpoint.endsWith('/sell') ? '매도에 성공했습니다.' : '매수에 성공했습니다.')
     }
     return fulfill({ message: 'not found' }, 404)
   })
@@ -66,22 +77,47 @@ let qaBrowser
   await goto('/token')
   await visible(page.locator('.discovery-card').first())
   assert.equal(await page.locator('.discovery-card').count(), 5)
-  const firstIds = await page.locator('.discovery-card').evaluateAll((links) => links.map((link) => link.getAttribute('href')))
+  const getRandomIds = () => page.locator('.discovery-card').evaluateAll((links) => links.map((link) => link.getAttribute('href')))
+  const firstIds = await getRandomIds()
   const beforePoll = overviewRequests
+  randomOffset = 1
   await page.clock.fastForward(31000)
   await page.waitForTimeout(250)
   assert(overviewRequests > beforePoll, '30 second automatic polling')
+  assert.deepEqual(await getRandomIds(), firstIds, 'Automatic polling keeps selected animals')
+
+  const detailRequestsBeforeReselect = requests.filter((url) => /^\/token\/search\/\d+$/.test(url)).length
+  marketDelay = 200
   await page.getByRole('button', { name: '지금 새로고침' }).click()
-  await page.waitForTimeout(200)
-  assert(overviewRequests > 1)
-  assert.deepEqual(await page.locator('.discovery-card').evaluateAll((links) => links.map((link) => link.getAttribute('href'))), firstIds)
+  assert(await page.getByRole('button', { name: '랜덤 동물 새로고침' }).isDisabled(), 'Disable random refresh while loading')
+  assert(await page.getByRole('button', { name: '지금 새로고침' }).isDisabled(), 'Disable market refresh while loading')
+  await page.waitForFunction(() => !document.querySelector('.random-picks-refresh').disabled)
+  marketDelay = 0
+  const secondIds = await getRandomIds()
+  assert.notDeepEqual(secondIds, firstIds, 'Manual refresh uses newly returned random animals')
+  assert.equal(requests.filter((url) => /^\/token\/search\/\d+$/.test(url)).length, detailRequestsBeforeReselect, 'Reselection uses overview without extra detail requests')
+
+  randomOffset = 0
+  await page.clock.fastForward(31000)
+  await page.waitForTimeout(250)
+  assert.deepEqual(await getRandomIds(), secondIds, 'Polling keeps the new manual selection')
+  await page.getByRole('button', { name: '랜덤 동물 새로고침' }).click()
+  await page.waitForFunction(() => !document.querySelector('.random-picks-refresh').disabled)
+  assert.deepEqual(await getRandomIds(), firstIds, 'Dedicated random button also reselects')
+
   marketFailure = true
-  await page.getByRole('button', { name: '지금 새로고침' }).click()
+  randomOffset = 1
+  await page.getByRole('button', { name: '랜덤 동물 새로고침' }).click()
   await visible(page.getByText('갱신 실패 · 마지막 데이터 표시 중', { exact: false }))
-  assert.equal(await page.locator('.discovery-card').count(), 5)
+  assert.deepEqual(await getRandomIds(), firstIds, 'Failed reselection preserves cards')
+  assert.equal(await page.getByRole('button', { name: '랜덤 동물 새로고침' }).isDisabled(), false)
   marketFailure = false
-  await page.getByRole('button', { name: '지금 새로고침' }).click()
-  await page.waitForTimeout(200)
+  await page.clock.fastForward(31000)
+  await page.waitForTimeout(250)
+  assert.deepEqual(await getRandomIds(), firstIds, 'Polling after failed reselection still preserves selection')
+  await page.getByRole('button', { name: '랜덤 동물 새로고침' }).click()
+  await page.waitForFunction(() => !document.querySelector('.random-picks-refresh').disabled)
+  assert.deepEqual(await getRandomIds(), secondIds, 'Reselection can be retried')
   await page.screenshot({ path: path.join(output, 'market-desktop.png'), fullPage: true })
   await goto('/token/all')
   await visible(page.getByRole('combobox'))
@@ -102,6 +138,7 @@ let qaBrowser
   await page.getByRole('button', { name: '5시간', exact: true }).click()
   await visible(page.getByRole('img', { name: /가격 이력/ }))
   assert(requests.includes('/token/1?history=5h'))
+  assert.equal(memberRequests, 0, 'Guests must not fetch member summary')
   await page.getByRole('link', { name: '로그인하고 거래하기' }).click()
   await visible(page.getByRole('heading', { name: '로그인', exact: true }))
   await page.getByLabel('아이디', { exact: true }).fill('test')
@@ -109,6 +146,9 @@ let qaBrowser
   await page.getByRole('button', { name: /로그인/ }).click()
   await visible(page.getByRole('heading', { name: 'Lion', exact: true }))
   await visible(page.getByRole('button', { name: '매수 주문 확인', exact: true }))
+  await visible(page.locator('.member-name').filter({ hasText: '테스트회원님' }))
+  await visible(page.locator('.member-balance').filter({ hasText: '100,000 P' }))
+  const memberRequestsBeforeTrade = memberRequests
   await page.getByRole('button', { name: '매수 주문 확인', exact: true }).click()
   await page.getByRole('button', { name: '1일', exact: true }).click()
   await visible(page.getByRole('button', { name: '매수 확정', exact: true }))
@@ -116,15 +156,53 @@ let qaBrowser
   assert.equal(await page.getByRole('button', { name: '거래 처리 중…' }).isDisabled(), true)
   await visible(page.getByText('다른 거래가 먼저 처리되었습니다. 다시 시도해주세요.', { exact: true }))
   assert.equal(orders, 1, '409 must not retry automatically')
+  assert(memberRequests > memberRequestsBeforeTrade, '409 refreshes member summary')
   orderMode = 'success'
   await page.getByRole('button', { name: '매수 주문 확인', exact: true }).click()
   await page.getByRole('button', { name: '매수 확정', exact: true }).click()
   await visible(page.getByText('매수에 성공했습니다.', { exact: true }))
   assert.equal(orders, 2)
+  await visible(page.locator('.member-balance').filter({ hasText: '91,000 P' }))
+  await page.getByRole('button', { name: '매도', exact: true }).click()
+  await page.getByRole('button', { name: '매도 주문 확인', exact: true }).click()
+  await page.getByRole('button', { name: '매도 확정', exact: true }).click()
+  await visible(page.getByText('매도에 성공했습니다.', { exact: true }))
+  await visible(page.locator('.member-balance').filter({ hasText: '100,000 P' }))
+  assert.equal(orders, 3)
+  await page.getByRole('button', { name: '매수', exact: true }).click()
   assert(protectedHeaders.every((value) => value?.startsWith('Bearer ')))
   await page.reload()
   await visible(page.getByRole('button', { name: '매수 주문 확인', exact: true }))
   await page.screenshot({ path: path.join(output, 'detail-desktop.png'), fullPage: true })
+  const currentToken = await page.evaluate(() => sessionStorage.getItem('zoostock.accessToken'))
+  await goto('/')
+  await page.getByRole('link', { name: '매매 시작하기', exact: true }).click()
+  await visible(page.getByRole('heading', { name: '오늘의 마켓.', exact: true }))
+  assert.equal(await page.evaluate(() => sessionStorage.getItem('zoostock.accessToken')), currentToken)
+  for (const authPath of ['/signup', '/login']) {
+    await goto(authPath)
+    await visible(page.getByRole('heading', { name: '오늘의 마켓.', exact: true }))
+    assert(new URL(page.url()).pathname === '/token')
+  }
+  memberName = '이름이아주긴회원의닉네임입니다'.repeat(4)
+  await page.setViewportSize({ width: 320, height: 740 })
+  await goto('/')
+  await visible(page.locator('.member-name'))
+  assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Logged-in 320px header with long name')
+  await page.screenshot({ path: path.join(output, 'member-header-mobile.png'), fullPage: true })
+  memberFailure = true
+  await page.clock.fastForward(31000)
+  await visible(page.getByRole('button', { name: '회원 정보 다시 조회' }))
+  await visible(page.locator('.member-balance').filter({ hasText: '100,000 P' }))
+  memberFailure = false
+  await page.getByRole('button', { name: '회원 정보 다시 조회' }).click()
+  await page.waitForTimeout(200)
+  await page.getByRole('button', { name: '로그아웃', exact: true }).click()
+  assert.equal(await page.locator('.member-summary').count(), 0)
+  await visible(page.getByRole('link', { name: '무료로 시작하기', exact: true }))
+  await page.evaluate((value) => sessionStorage.setItem('zoostock.accessToken', value), currentToken)
+  memberName = '테스트회원'
+  await page.setViewportSize({ width: 1440, height: 1000 })
   await goto('/mypage')
   await visible(page.getByRole('cell', { name: '12개' }))
   await page.getByRole('link', { name: /거래 기록 보기/ }).click()
@@ -170,6 +248,6 @@ let qaBrowser
   await goto('/')
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), '320px layout')
   assert.deepEqual(errors, [], 'No browser runtime errors')
-  console.log(JSON.stringify({ result: 'PASS (mocked API, no real DB trades)', scenarios: ['desktop/mobile layout including 320px', 'sorting', 'search empty', '30-second polling', 'stable random selection', 'refresh failure preserves data', 'chart periods', 'empty/single-point chart', 'login redirect', 'signup validation', 'session reload', 'bearer header', '409 no retry', 'pending order button disabled', 'successful order', 'portfolio/history', '401 clears session', 'timer expiry', 'unknown token'], orders, overviewRequests, errors, screenshots: output }, null, 2))
+  console.log(JSON.stringify({ result: 'PASS (mocked API, no real DB trades)', scenarios: ['desktop/mobile layout including 320px', 'sorting', 'search empty', '30-second polling', 'stable random selection during polling', 'manual random reselection', 'random refresh failure preserves selection and allows retry', 'refresh failure preserves data', 'chart periods', 'empty/single-point chart', 'login redirect', 'signup validation', 'session reload', 'bearer header', '409 no retry', 'pending order button disabled', 'successful order', 'portfolio/history', '401 clears session', 'timer expiry', 'unknown token', 'member header after login and reload', 'balance refresh after buy and sell', 'logged-in start button', 'guest-only routes', 'long-name mobile header', 'member refresh error and retry', 'logout clears summary'], orders, overviewRequests, errors, screenshots: output }, null, 2))
   await browser.close()
 })().catch(async (error) => { console.error(error); if (qaBrowser) await qaBrowser.close(); process.exitCode = 1 })

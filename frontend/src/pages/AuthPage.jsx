@@ -32,16 +32,8 @@ export default function AuthPage({ signup = false }) {
       const result = await api(signup ? '/signup' : '/login', { method: 'POST', body })
       if (signup) navigate('/login', { replace: true, state: { signedUp: true } })
       else {
+        // 로그인 후 이동은 GuestOnly가 한 곳에서 처리해 이전 화면으로 복귀한다.
         signIn(result)
-        const destination = location.state?.from
-        navigate(
-          typeof destination === 'string' &&
-            destination.startsWith('/') &&
-            !destination.startsWith('//')
-            ? destination
-            : '/token',
-          { replace: true },
-        )
       }
     } catch (failure) {
       setError(failure.message)

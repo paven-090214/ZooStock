@@ -1,6 +1,8 @@
 import { Link } from 'react-router'
+import { useAuth } from '../auth/auth'
 
 export default function Home() {
+  const { token } = useAuth()
   return (
     <div className="home-page">
       <section className="home-hero">
@@ -22,8 +24,8 @@ export default function Home() {
             <Link className="button" to="/token">
               마켓 둘러보기 <span>↗</span>
             </Link>
-            <Link className="button secondary" to="/signup">
-              무료로 시작하기
+            <Link className="button secondary" to={token ? '/token' : '/signup'}>
+              {token ? '매매 시작하기' : '무료로 시작하기'}
             </Link>
           </div>
           <span className="hero-note">실제 돈 없이, 부담 없이 시작하는 모의 투자</span>

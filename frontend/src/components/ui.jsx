@@ -67,7 +67,12 @@ export function RefreshStatus({ resource }) {
         {resource.error ? '갱신 실패 · 마지막 데이터 표시 중' : '30초마다 업데이트'}
         {resource.updatedAt && ` · ${new Date(resource.updatedAt).toLocaleTimeString('ko-KR')}`}
       </span>
-      <button className="text-button" onClick={resource.refresh} aria-label="지금 새로고침">
+      <button
+        className="text-button"
+        onClick={resource.refresh}
+        disabled={resource.refreshing}
+        aria-label="지금 새로고침"
+      >
         ↻ 새로고침
       </button>
     </div>

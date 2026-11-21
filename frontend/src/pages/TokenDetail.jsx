@@ -8,7 +8,7 @@ import PriceChart from '../components/PriceChart'
 import { RefreshStatus, ResourceState, TokenImage } from '../components/ui'
 
 function OrderPanel({ token, holding, refresh, holdingError }) {
-  const { token: accessToken } = useAuth()
+  const { token: accessToken, refreshMember } = useAuth()
   const location = useLocation()
   const [side, setSide] = useState('buy')
   const [quantity, setQuantity] = useState('1')
@@ -50,6 +50,8 @@ function OrderPanel({ token, holding, refresh, holdingError }) {
       })
       setConfirming(false)
       refresh()
+      // 서버가 거래를 확정한 후 잔액을 다시 조회해 공통 헤더에 반영한다.
+      refreshMember()
     } catch (error) {
       if (error.name === 'AbortError') return
       setNotice({
@@ -60,7 +62,10 @@ function OrderPanel({ token, holding, refresh, holdingError }) {
             : error.message,
       })
       setConfirming(false)
-      if (error.status === 409) refresh()
+      if (error.status === 409) {
+        refresh()
+        refreshMember()
+      }
     } finally {
       if (!controller.current.signal.aborted) setBusy(false)
     }
