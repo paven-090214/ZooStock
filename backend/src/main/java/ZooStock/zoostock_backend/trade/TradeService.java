@@ -44,7 +44,7 @@ public class TradeService {
             throw new IllegalArgumentException("매도 수량은 1주 이상이여야 합니다.");
         }
         Optional<TokenEntity> tokenOptional = tokenRepository.findById(tokenId);
-        Optional<MemberEntity> memberOptional = memberRepository.findByIdForUpdate(memberUid);
+        Optional<MemberEntity> memberOptional = memberRepository.findById(memberUid);
         Optional<TokenHoldingEntity> tokenHoldingOptional =
                 tokenHoldingRepository.findByMemberUidAndTokenId(memberUid, tokenId);
         TradeHistoryEntity tradeHistoryEntity = new TradeHistoryEntity();
@@ -101,7 +101,7 @@ public class TradeService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "매수 수량은 1주 이상이여야 합니다.");
         }
 
-        Optional<MemberEntity> memberEntity = memberRepository.findByIdForUpdate(memberUid);
+        Optional<MemberEntity> memberEntity = memberRepository.findById(memberUid);
         Optional<TokenEntity> tokenEntity = tokenRepository.findById(tokenId);
         Optional<TokenHoldingEntity> optionalTokenHoldingEntity =
                 tokenHoldingRepository.findByMemberUidAndTokenId(memberUid, tokenId);

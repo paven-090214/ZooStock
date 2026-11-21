@@ -12,12 +12,12 @@ import java.util.Optional;
 @Repository
 public interface MemberRepository extends  JpaRepository<MemberEntity, Long>
 {
-    // 트랜잭션 동시성 처리
-    @Query("SELECT m FROM MemberEntity m WHERE m.memberUid = :memberUid")
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    Optional<MemberEntity> findByIdForUpdate(
-            @Param("memberUid") Long memberUid
-    );
+    // 낙관적 락으로 변경
+    //@Query("SELECT m FROM MemberEntity m WHERE m.memberUid = :memberUid")
+    //@Lock(LockModeType.PESSIMISTIC_WRITE)
+    //Optional<MemberEntity> findByIdForUpdate(
+    //        @Param("memberUid") Long memberUid
+    //);
 
     Optional<MemberEntity> findByMemberId(String memberID);
 
@@ -25,5 +25,3 @@ public interface MemberRepository extends  JpaRepository<MemberEntity, Long>
 
     boolean existsByMemberName(String memberName);
 }
-
-

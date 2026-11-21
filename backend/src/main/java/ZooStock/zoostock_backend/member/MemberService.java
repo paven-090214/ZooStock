@@ -22,7 +22,6 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final TokenHoldingRepository tokenHoldingRepository;
-    private final TradeHistoryRepository tradeHistoryRepository;
 
     public MemberService(
             MemberRepository memberRepository,
@@ -35,7 +34,6 @@ public class MemberService {
         this.passwordEncoder = passwordEncoder;
         this.jwtProvider = jwtProvider;
         this.tokenHoldingRepository = tokenHoldingRepository;
-        this.tradeHistoryRepository = tradeHistoryRepository;
     }
 
     @Transactional
