@@ -30,3 +30,11 @@ Thumbs.db
 # AI Agent Instructions
 AGENTS.md
 /docs/
+
+# Local documentation
+/DEPLOYMENT.md
+/VALIDATION.md
+/frontend/README.md
+
+# Local environment template
+/.env.example
