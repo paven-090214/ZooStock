@@ -6,6 +6,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 public class BoardController {
 
@@ -15,6 +17,11 @@ public class BoardController {
             BoardService boardService
     ) {
         this.boardService = boardService;
+    }
+
+    @GetMapping("/board")
+    public List<BoardDTO> listBoards() {
+        return boardService.getBoards();
     }
 
     @PostMapping ("/board/create")

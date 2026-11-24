@@ -8,6 +8,8 @@ import TokenList from '../pages/TokenList'
 import TokenDetail from '../pages/TokenDetail'
 import AuthPage from '../pages/AuthPage'
 import Portfolio from '../pages/Portfolio'
+import BoardList from '../pages/BoardList'
+import BoardDetail from '../pages/BoardDetail'
 import { useEffect } from 'react'
 
 function ScrollToTop() {
@@ -62,6 +64,8 @@ export default function AppRouter() {
             <Route element={<RequireAuth />}>
               <Route path="mypage" element={<Portfolio />} />
               <Route path="mypage/history" element={<Portfolio history />} />
+              <Route path="board" element={<BoardList />} />
+              <Route path="board/:id" element={<BoardDetail />} />
             </Route>
             <Route
               path="*"

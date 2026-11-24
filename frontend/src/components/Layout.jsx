@@ -28,6 +28,7 @@ export default function Layout() {
               마켓
             </NavLink>
             <NavLink to="/token/all">전체 토큰</NavLink>
+            <NavLink to="/board">게시판</NavLink>
           </nav>
           <form className="header-search" role="search" onSubmit={search}>
             <span aria-hidden="true">⌕</span>

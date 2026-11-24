@@ -2,9 +2,11 @@ package ZooStock.zoostock_backend.community;
 
 import ZooStock.zoostock_backend.community.dto.BoardDTO;
 import ZooStock.zoostock_backend.member.dto.MemberDTO;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -19,6 +21,21 @@ public class BoardService {
     ) {
         this.boardRepository = boardRepository;
         this.boardLikeRepository = boardLikeRepository;
+    }
+
+    public List<BoardDTO> getBoards() {
+        // ponytail: 좋아요 수는 목록에서 생략(null). 필요하면 쿼리 1번으로 묶어서 추가
+        return boardRepository.findAll(Sort.by(Sort.Direction.DESC, "boardId")).stream()
+                .map(b -> new BoardDTO(
+                        b.getBoardId(),
+                        b.getMemberUid(),
+                        b.getTitle(),
+                        b.getContent(),
+                        b.getViewCount(),
+                        b.getBoardCreatedAt(),
+                        null
+                ))
+                .toList();
     }
 
     public void createBoard(
