@@ -1,5 +1,7 @@
 package ZooStock.zoostock_backend.community.dto;
 
+import ZooStock.zoostock_backend.member.RoleType;
+
 import java.util.Date;
 
 public class BoardDTO {

@@ -2,6 +2,7 @@ package ZooStock.zoostock_backend.member;
 
 import ZooStock.zoostock_backend.member.dto.MemberDTO;
 import ZooStock.zoostock_backend.member.dto.MemberOverviewResponse;
+import ZooStock.zoostock_backend.member.dto.TopMemberResponse;
 import ZooStock.zoostock_backend.trade.dto.TokenHoldingResponse;
 import ZooStock.zoostock_backend.trade.dto.TradeHistoryResponse;
 import ZooStock.zoostock_backend.trade.TradeHistoryService;
@@ -65,5 +66,10 @@ public class MemberController {
             @RequestAttribute("memberUid") Long memberUid
     ) {
         return ResponseEntity.ok(memberService.OverViewMember(memberUid));
+    }
+
+    @GetMapping("/ranking")
+    public ResponseEntity<List<TopMemberResponse>> topMemberRanking() {
+        return ResponseEntity.ok(memberService.topMemberRanking());
     }
 }

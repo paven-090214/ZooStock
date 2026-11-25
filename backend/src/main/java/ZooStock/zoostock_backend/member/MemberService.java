@@ -3,6 +3,7 @@ package ZooStock.zoostock_backend.member;
 import ZooStock.zoostock_backend.auth.JwtProvider;
 import ZooStock.zoostock_backend.member.dto.MemberDTO;
 import ZooStock.zoostock_backend.member.dto.MemberOverviewResponse;
+import ZooStock.zoostock_backend.member.dto.TopMemberResponse;
 import ZooStock.zoostock_backend.trade.TokenHoldingRepository;
 import ZooStock.zoostock_backend.trade.TradeHistoryRepository;
 import ZooStock.zoostock_backend.trade.dto.TokenHoldingResponse;
@@ -68,7 +69,8 @@ public class MemberService {
         memberEntity.setMemberId(memberDTO.getMemberId());
         memberEntity.setMemberCreatedAt(date);
         memberEntity.setMemberName(memberDTO.getMemberName());
-        memberEntity.setMemberPoint(10000L);
+        memberEntity.setMemberPoint(50000L);
+        memberEntity.setRole(RoleType.USER);
         memberRepository.save(memberEntity);
     }
 
@@ -133,11 +135,16 @@ public class MemberService {
                 .map(
                         member -> member.toMemberOverviewResponse(
                                 member.getMemberName(),
-                                member.getMemberPoint()
+                                member.getMemberPoint(),
+                                member.getRole()
                         )
                 )
                 .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원 조회 실패")
         );
+    }
+
+    public List<TopMemberResponse> topMemberRanking() {
+        return memberRepository.findTopMember();
     }
 }

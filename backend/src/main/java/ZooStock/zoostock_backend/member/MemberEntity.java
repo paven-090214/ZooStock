@@ -44,13 +44,39 @@ public class MemberEntity {
     @Column(name = "version")
     private Long version;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    private RoleType role;
+
     public MemberOverviewResponse toMemberOverviewResponse(
             String memberName,
-            Long memberPoint
+            Long memberPoint,
+            RoleType role
     ) {
         return new MemberOverviewResponse(
                 memberName,
-                memberPoint
+                memberPoint,
+                role
+        );
+    }
+
+    public MemberDTO toMemberResponse(
+            Long memberUid,
+            String memberName,
+            String memberId,
+            String memberPassword,
+            Long memberPoint,
+            Date memberCreatedAt,
+            RoleType role
+    ) {
+        return new MemberDTO (
+                memberUid,
+                memberName,
+                memberId,
+                memberPassword,
+                memberPoint,
+                memberCreatedAt,
+                role
         );
     }
 }
