@@ -5,7 +5,14 @@ import { api } from '../lib/api'
 import { points } from '../lib/format'
 import { useResource } from '../hooks/useResource'
 import PriceChart from '../components/PriceChart'
-import { RefreshStatus, ResourceState, TokenImage } from '../components/ui'
+import { Rate, RefreshStatus, ResourceState, TokenImage } from '../components/ui'
+
+// 차트 기간. 백엔드의 history 값과 같아야 한다. 기간을 바꿀 때는 이 목록만 고친다.
+const PERIODS = [
+  ['1h', '1시간'],
+  ['5h', '5시간'],
+  ['1d', '1일'],
+]
 
 function OrderPanel({ token, holding, refresh, holdingError }) {
   const { token: accessToken, refreshMember } = useAuth()
@@ -142,6 +149,21 @@ function OrderPanel({ token, holding, refresh, holdingError }) {
               <dt>보유 수량</dt>
               <dd>{holdingError ? '조회 실패' : `${points(holding?.quantity || 0)}개`}</dd>
             </div>
+            {/* 보유 중일 때만 평균 매수가와 수익률을 보여준다. */}
+            {!holdingError && holding && (
+              <>
+                <div>
+                  <dt>평균 매수가</dt>
+                  <dd>{points(holding.buyPriceAvg)} P</dd>
+                </div>
+                <div>
+                  <dt>수익률</dt>
+                  <dd className="profit-rate">
+                    <Rate value={holding.profitRate} />
+                  </dd>
+                </div>
+              </>
+            )}
             <div className="total">
               <dt>예상 거래 금액</dt>
               <dd>
@@ -237,11 +259,26 @@ export default function TokenDetail() {
     holdingLoader,
     accessToken ? 30000 : 0,
   )
+  // 로그인했을 때만 이 토큰의 내 매매 기록을 차트 기간에 맞춰 가져온다.
+  const tradeLoader = useCallback(
+    (signal) =>
+      accessToken && validId
+        ? api(`/token/history/${id}?history=${period}`, { auth: true, signal })
+        : Promise.resolve([]),
+    [accessToken, id, period, validId],
+  )
+  const trades = useResource(
+    `trades:${id}:${period}:${accessToken || 'guest'}`,
+    tradeLoader,
+    accessToken ? 30000 : 0,
+  )
   const refresh = () => {
     resource.refresh()
     history.refresh()
     holdings.refresh()
+    trades.refresh()
   }
+  const periodLabel = PERIODS.find(([value]) => value === period)?.[1] || period
   return (
     <>
       <Link className="breadcrumb" to="/token/all">
@@ -271,11 +308,7 @@ export default function TokenDetail() {
               <div className="chart-heading">
                 <h2>가격 차트</h2>
                 <div className="period-tabs" role="group" aria-label="차트 조회 기간">
-                  {[
-                    ['1h', '1시간'],
-                    ['5h', '5시간'],
-                    ['1d', '1일'],
-                  ].map(([value, label]) => (
+                  {PERIODS.map(([value, label]) => (
                     <button
                       key={value}
                       aria-pressed={period === value}
@@ -288,10 +321,17 @@ export default function TokenDetail() {
                 </div>
               </div>
               <ResourceState resource={history} />
-              {history.data && <PriceChart key={`${id}:${period}`} history={history.data} />}
+              {history.data && (
+                <PriceChart
+                  key={`${id}:${period}`}
+                  history={history.data}
+                  trades={Array.isArray(trades.data) ? trades.data : []}
+                />
+              )}
               <p className="panel-footnote">
-                최근 {period === '1h' ? '1시간' : period === '5h' ? '5시간' : '1일'}의 실제 저장
-                기록 · 한국 시각 기준
+                최근 {periodLabel}의 실제 저장 기록 · 한국 시각 기준
+                {accessToken && ' · 빨간 점은 내 매수, 파란 점은 내 매도'}
+                {accessToken && trades.error && ' · 매매 기록을 불러오지 못했습니다'}
               </p>
             </section>
             <OrderPanel

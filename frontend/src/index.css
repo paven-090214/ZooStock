@@ -2118,3 +2118,170 @@ tbody tr:hover {
     font-size: 10px;
   }
 }
+
+/* ── 페이지 버튼 (전체 토큰, 랭킹) ── */
+.pagination {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 22px;
+}
+.pagination button {
+  min-width: 34px;
+  padding: 7px 11px;
+  border: 1px solid #e0e6d7;
+  border-radius: 6px;
+  background: #fffefb;
+  color: #6f8264;
+  font-size: 11px;
+}
+.pagination button.active {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+  font-weight: 600;
+}
+.toolbar-page {
+  font-size: 11px;
+  color: #9aa68d;
+}
+
+/* ── 수익률 ── */
+.rate {
+  font-weight: 600;
+}
+.order-summary .profit-rate {
+  font-size: 13px;
+}
+
+/* ── 차트의 내 매매 점 ── */
+.trade-mark {
+  cursor: pointer;
+  outline: none;
+}
+.trade-mark:focus-visible circle:last-of-type {
+  stroke: var(--green);
+  stroke-width: 3;
+}
+.trade-label rect {
+  fill: #fffefc;
+  stroke: #dfe6d5;
+  filter: drop-shadow(0 2px 5px #22391d1a);
+}
+.price-chart .trade-label text {
+  font-size: 11px;
+  fill: #6f8264;
+}
+.price-chart .trade-label text.up {
+  fill: var(--red);
+  font-weight: 600;
+}
+.price-chart .trade-label text.down {
+  fill: var(--blue);
+  font-weight: 600;
+}
+
+/* ── 랭킹 ── */
+.ranking-table th:last-child,
+.ranking-table td:last-child {
+  text-align: right;
+}
+.ranking-table td.numeric strong {
+  font-size: 14px;
+  font-weight: 500;
+}
+.ranking-table td.numeric small {
+  color: #98a58c;
+}
+.rank-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border-radius: 8px;
+  background: #f2f5eb;
+  color: #7f8f72;
+  font-size: 12px;
+  font-weight: 600;
+}
+.rank-badge.top-1 {
+  background: #f6e7b8;
+  color: #8a6a12;
+}
+.rank-badge.top-2 {
+  background: #e7ebef;
+  color: #5d6873;
+}
+.rank-badge.top-3 {
+  background: #f1dccb;
+  color: #8a5a35;
+}
+.rank-member {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+tbody tr.mine {
+  background: #f3f8ec;
+}
+.mine-pill {
+  margin-left: 8px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--green);
+  font-size: 9px;
+  font-weight: 600;
+}
+
+/* ── 관리자 ── */
+.admin-table td {
+  vertical-align: middle;
+}
+.admin-table tr.editing,
+.admin-table tr.editing:hover {
+  background: #f8faf3;
+}
+.role-badge {
+  display: inline-block;
+  border-radius: 4px;
+  padding: 3px 9px;
+  font-size: 10px;
+  background: #f2f5eb;
+  color: #7f8f72;
+  white-space: nowrap;
+}
+.role-badge.admin {
+  background: #e6efe0;
+  color: var(--green);
+  font-weight: 600;
+}
+.admin-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0 16px;
+}
+.admin-editor .field input[readonly] {
+  background: #f4f6ef;
+  color: #8a977c;
+}
+.field select {
+  width: 100%;
+  border: 1px solid #dfe6d5;
+  border-radius: 7px;
+  padding: 12px 13px;
+  color: #31482a;
+  background: #fff;
+  font-size: 13px;
+}
+.admin-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+@media (max-width: 800px) {
+  .admin-editor-grid {
+    grid-template-columns: 1fr;
+  }
+}

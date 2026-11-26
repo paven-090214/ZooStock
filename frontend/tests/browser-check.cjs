@@ -40,7 +40,9 @@ let qaBrowser
       const sort = url.searchParams.get('sort') || 'nameAsc'
       const result = [...tokens].sort((a, b) => sort.startsWith('price') ? a.tokenPrice - b.tokenPrice : a.tokenName.localeCompare(b.tokenName))
       if (sort.endsWith('Desc')) result.reverse()
-      return fulfill(result)
+      // 백엔드처럼 1부터 받은 page를 Spring Page 모양(number는 0부터)으로 응답한다.
+      const page = Math.max(1, Number(url.searchParams.get('page')) || 1), size = 50
+      return fulfill({ content: result.slice((page - 1) * size, page * size), number: page - 1, size, totalElements: result.length, totalPages: Math.ceil(result.length / size) })
     }
     if (endpoint === '/token/search') return fulfill(tokens.filter((token) => token.tokenName.includes(url.searchParams.get('name'))))
     if (/^\/token\/search\/\d+$/.test(endpoint)) {
@@ -127,7 +129,7 @@ let qaBrowser
     assert.match(await page.locator('tbody tr').first().innerText(), new RegExp(firstName))
   }
   assert.match(page.url(), /sort=priceDesc/)
-  assert(requests.includes('/token/all?sort=priceDesc'))
+  assert(requests.includes('/token/all?sort=priceDesc&page=1'))
   assert.match(await page.locator('tbody tr').first().innerText(), /Gray Wolf/)
   await page.getByRole('textbox', { name: '토큰 이름 검색' }).fill('NO_RESULT')
   await page.getByRole('button', { name: '검색', exact: true }).click()

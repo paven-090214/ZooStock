@@ -1,11 +1,17 @@
 package ZooStock.zoostock_backend.member;
 
 import ZooStock.zoostock_backend.auth.JwtProvider;
+import ZooStock.zoostock_backend.market.TokenEntity;
+import ZooStock.zoostock_backend.market.TokenRepository;
 import ZooStock.zoostock_backend.member.dto.MemberDTO;
 import ZooStock.zoostock_backend.member.dto.MemberOverviewResponse;
+import ZooStock.zoostock_backend.member.dto.TopMemberResponse;
 import ZooStock.zoostock_backend.trade.TokenHoldingRepository;
-import ZooStock.zoostock_backend.trade.TradeHistoryRepository;
 import ZooStock.zoostock_backend.trade.dto.TokenHoldingResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,6 +22,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+@RequiredArgsConstructor
 @Service
 public class MemberService {
 
@@ -23,19 +30,7 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final TokenHoldingRepository tokenHoldingRepository;
-
-    public MemberService(
-            MemberRepository memberRepository,
-            PasswordEncoder passwordEncoder,
-            JwtProvider jwtProvider,
-            TokenHoldingRepository tokenHoldingRepository,
-            TradeHistoryRepository tradeHistoryRepository
-            ) {
-        this.memberRepository = memberRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtProvider = jwtProvider;
-        this.tokenHoldingRepository = tokenHoldingRepository;
-    }
+    private final TokenRepository tokenRepository;
 
     @Transactional
     public void signup(MemberDTO memberDTO) {
@@ -68,7 +63,8 @@ public class MemberService {
         memberEntity.setMemberId(memberDTO.getMemberId());
         memberEntity.setMemberCreatedAt(date);
         memberEntity.setMemberName(memberDTO.getMemberName());
-        memberEntity.setMemberPoint(10000L);
+        memberEntity.setMemberPoint(50000L);
+        memberEntity.setRole(RoleType.USER);
         memberRepository.save(memberEntity);
     }
 
@@ -113,13 +109,18 @@ public class MemberService {
         return tokenHoldingRepository.findByMemberUid(memberUid)
                 .stream()
                 .map(
-                        token -> token.toTradeHistoryResponse(
-                                token.getHoldingId(),
-                                token.getMemberUid(),
-                                token.getTokenId(),
-                                token.getQuantity(),
-                                token.getBuyPriceAvg()
-                        )
+                        token -> {
+                            Long currentPrice = tokenRepository.findByTokenId(token.getTokenId())
+                                    .map(TokenEntity::getTokenPrice).orElse(null);
+                            return token.toTokenHoldingResponse(
+                                    token.getHoldingId(),
+                                    token.getMemberUid(),
+                                    token.getTokenId(),
+                                    token.getQuantity(),
+                                    token.getBuyPriceAvg(),
+                                    token.calculateProfitRate(currentPrice)
+                            );
+                        }
                 )
                 .toList();
     }
@@ -133,11 +134,20 @@ public class MemberService {
                 .map(
                         member -> member.toMemberOverviewResponse(
                                 member.getMemberName(),
-                                member.getMemberPoint()
+                                member.getMemberPoint(),
+                                member.getRole()
                         )
                 )
                 .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원 조회 실패")
         );
+    }
+
+    public Page<TopMemberResponse> topMemberRanking(int page) {
+        if (page <= 0)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "존재하지 않는 페이지 입니다.");
+
+        Pageable pageable = PageRequest.of(page - 1, 10);
+        return memberRepository.findTopMember(pageable);
     }
 }

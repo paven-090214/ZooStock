@@ -1,25 +1,25 @@
 package ZooStock.zoostock_backend.auth;
 
+import ZooStock.zoostock_backend.member.MemberEntity;
+import ZooStock.zoostock_backend.member.MemberRepository;
+import ZooStock.zoostock_backend.member.RoleType;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+@RequiredArgsConstructor
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
-
-    public JwtAuthenticationFilter(
-            JwtProvider jwtProvider
-    ) {
-        this.jwtProvider = jwtProvider;
-    }
+    private final MemberRepository memberRepository;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -43,6 +43,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         || path.matches("/token/search/[0-9]+")
                         || path.matches("/board/[0-9]+")
                         || path.matches("/token/[0-9]+")
+                        ||path.equals("/ranking")
         );
 
         // Swagger 화면과 API 문서
@@ -75,15 +76,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String memberToken = authorization.substring(7);
+        Long memberUid;
+        String path = request.getServletPath();
 
         try {
-            Long memberUid = jwtProvider.getMemberUid(memberToken);
+            memberUid = jwtProvider.getMemberUid(memberToken);
             request.setAttribute("memberUid", memberUid);
         } catch (JwtException | IllegalArgumentException e) {
             response.sendError(401, "JWT인증에 실패했습니다.");
             return;
         }
 
+        if (path.startsWith("/admin/")) {
+            RoleType role = memberRepository.findById(memberUid)
+                    .map(MemberEntity::getRole).orElse(null);
+            if (role != RoleType.ADMIN){
+                response.sendError(403, "권한이 없습니다.");
+                return;
+            }
+        }
         filterChain.doFilter(request, response);
     }
 

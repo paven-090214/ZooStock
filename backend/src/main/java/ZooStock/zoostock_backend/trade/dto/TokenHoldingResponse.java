@@ -17,4 +17,5 @@ public class TokenHoldingResponse {
     private Long tokenId;
     private Long quantity;
     private BigDecimal buyPriceAvg;
+    private BigDecimal profitRate;
 }

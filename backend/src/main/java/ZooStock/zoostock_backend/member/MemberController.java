@@ -2,9 +2,11 @@ package ZooStock.zoostock_backend.member;
 
 import ZooStock.zoostock_backend.member.dto.MemberDTO;
 import ZooStock.zoostock_backend.member.dto.MemberOverviewResponse;
+import ZooStock.zoostock_backend.member.dto.TopMemberResponse;
 import ZooStock.zoostock_backend.trade.dto.TokenHoldingResponse;
 import ZooStock.zoostock_backend.trade.dto.TradeHistoryResponse;
 import ZooStock.zoostock_backend.trade.TradeHistoryService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -65,5 +67,12 @@ public class MemberController {
             @RequestAttribute("memberUid") Long memberUid
     ) {
         return ResponseEntity.ok(memberService.OverViewMember(memberUid));
+    }
+
+    @GetMapping("/ranking")
+    public ResponseEntity<Page<TopMemberResponse>> topMemberRanking(
+            @RequestParam(value = "page", defaultValue = "1") int page
+    ) {
+        return ResponseEntity.ok(memberService.topMemberRanking(page));
     }
 }
