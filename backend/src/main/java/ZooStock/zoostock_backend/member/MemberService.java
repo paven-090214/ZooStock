@@ -1,12 +1,16 @@
 package ZooStock.zoostock_backend.member;
 
 import ZooStock.zoostock_backend.auth.JwtProvider;
+import ZooStock.zoostock_backend.market.TokenEntity;
+import ZooStock.zoostock_backend.market.TokenRepository;
 import ZooStock.zoostock_backend.member.dto.MemberDTO;
 import ZooStock.zoostock_backend.member.dto.MemberOverviewResponse;
 import ZooStock.zoostock_backend.member.dto.TopMemberResponse;
+import ZooStock.zoostock_backend.trade.TokenHoldingEntity;
 import ZooStock.zoostock_backend.trade.TokenHoldingRepository;
 import ZooStock.zoostock_backend.trade.TradeHistoryRepository;
 import ZooStock.zoostock_backend.trade.dto.TokenHoldingResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,6 +21,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+@RequiredArgsConstructor
 @Service
 public class MemberService {
 
@@ -24,19 +29,7 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final TokenHoldingRepository tokenHoldingRepository;
-
-    public MemberService(
-            MemberRepository memberRepository,
-            PasswordEncoder passwordEncoder,
-            JwtProvider jwtProvider,
-            TokenHoldingRepository tokenHoldingRepository,
-            TradeHistoryRepository tradeHistoryRepository
-            ) {
-        this.memberRepository = memberRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtProvider = jwtProvider;
-        this.tokenHoldingRepository = tokenHoldingRepository;
-    }
+    private final TokenRepository tokenRepository;
 
     @Transactional
     public void signup(MemberDTO memberDTO) {
@@ -115,13 +108,18 @@ public class MemberService {
         return tokenHoldingRepository.findByMemberUid(memberUid)
                 .stream()
                 .map(
-                        token -> token.toTradeHistoryResponse(
-                                token.getHoldingId(),
-                                token.getMemberUid(),
-                                token.getTokenId(),
-                                token.getQuantity(),
-                                token.getBuyPriceAvg()
-                        )
+                        token -> {
+                            Long currentPrice = tokenRepository.findByTokenId(token.getTokenId())
+                                    .map(TokenEntity::getTokenPrice).orElse(null);
+                            return token.toTokenHoldingResponse(
+                                    token.getHoldingId(),
+                                    token.getMemberUid(),
+                                    token.getTokenId(),
+                                    token.getQuantity(),
+                                    token.getBuyPriceAvg(),
+                                    token.calculateProfitRate(currentPrice)
+                            );
+                        }
                 )
                 .toList();
     }
