@@ -1,5 +1,6 @@
 package ZooStock.zoostock_backend.member;
 
+import ZooStock.zoostock_backend.admin.dto.MemberAdminDTO;
 import ZooStock.zoostock_backend.member.dto.MemberDTO;
 import ZooStock.zoostock_backend.member.dto.MemberOverviewResponse;
 import jakarta.persistence.*;
@@ -79,4 +80,24 @@ public class MemberEntity {
                 role
         );
     }
+
+    public MemberAdminDTO toMemberAdminVer(
+            Long memberUid,
+            String memberName,
+            String memberId,
+            Long memberPoint,
+            Date memberCreatedAt,
+            RoleType role
+    ) {
+        return new MemberAdminDTO(
+                memberUid,
+                memberName,
+                memberId,
+                memberPoint,
+                memberCreatedAt,
+                role
+        );
+    }
+
+
 }

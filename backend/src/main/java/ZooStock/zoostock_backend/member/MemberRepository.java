@@ -2,6 +2,8 @@ package ZooStock.zoostock_backend.member;
 
 import ZooStock.zoostock_backend.member.dto.TopMemberResponse;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -43,7 +45,6 @@ public interface MemberRepository extends  JpaRepository<MemberEntity, Long>
             m.member_name,
             m.member_point
         ORDER BY total_assets DESC, m.member_uid ASC
-        LIMIT 3
     """, nativeQuery = true)
-    List<TopMemberResponse> findTopMember();
+    Page<TopMemberResponse> findTopMember(Pageable pageable);
 }

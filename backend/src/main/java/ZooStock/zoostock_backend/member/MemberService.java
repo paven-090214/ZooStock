@@ -6,11 +6,12 @@ import ZooStock.zoostock_backend.market.TokenRepository;
 import ZooStock.zoostock_backend.member.dto.MemberDTO;
 import ZooStock.zoostock_backend.member.dto.MemberOverviewResponse;
 import ZooStock.zoostock_backend.member.dto.TopMemberResponse;
-import ZooStock.zoostock_backend.trade.TokenHoldingEntity;
 import ZooStock.zoostock_backend.trade.TokenHoldingRepository;
-import ZooStock.zoostock_backend.trade.TradeHistoryRepository;
 import ZooStock.zoostock_backend.trade.dto.TokenHoldingResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -142,7 +143,11 @@ public class MemberService {
         );
     }
 
-    public List<TopMemberResponse> topMemberRanking() {
-        return memberRepository.findTopMember();
+    public Page<TopMemberResponse> topMemberRanking(int page) {
+        if (page <= 0)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "존재하지 않는 페이지 입니다.");
+
+        Pageable pageable = PageRequest.of(page - 1, 10);
+        return memberRepository.findTopMember(pageable);
     }
 }
