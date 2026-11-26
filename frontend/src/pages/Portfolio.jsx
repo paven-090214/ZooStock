@@ -1,10 +1,10 @@
 import { useCallback } from 'react'
 import { Link } from 'react-router'
 import { useAuth } from '../auth/auth'
-import { api } from '../lib/api'
+import { api, fetchAllTokens } from '../lib/api'
 import { dateTime, points } from '../lib/format'
 import { useResource } from '../hooks/useResource'
-import { RefreshStatus, ResourceState, TokenImage } from '../components/ui'
+import { Rate, RefreshStatus, ResourceState, TokenImage } from '../components/ui'
 
 export default function Portfolio({ history = false }) {
   const { token } = useAuth()
@@ -12,7 +12,7 @@ export default function Portfolio({ history = false }) {
     async (signal) => {
       const [items, tokens] = await Promise.all([
         api(history ? '/mypage/history' : '/mypage', { auth: true, signal }),
-        api('/token/all', { signal }),
+        fetchAllTokens(signal),
       ])
       const byId = new Map(tokens.map((item) => [String(item.tokenId), item]))
       return {
@@ -60,7 +60,7 @@ export default function Portfolio({ history = false }) {
                 <tr>
                   {(history
                     ? ['거래 시각', '토큰', '구분', '수량', '체결가']
-                    : ['보유 토큰', '보유 수량', '평균 매수가', '현재 가격']
+                    : ['보유 토큰', '보유 수량', '평균 매수가', '현재 가격', '수익률']
                   ).map((title) => (
                     <th key={title} scope="col">
                       {title}
@@ -105,6 +105,9 @@ export default function Portfolio({ history = false }) {
                             {animal.tokenPrice === undefined
                               ? '—'
                               : `${points(animal.tokenPrice)} P`}
+                          </td>
+                          <td className="numeric">
+                            <Rate value={item.profitRate} />
                           </td>
                         </>
                       )}

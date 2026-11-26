@@ -18,6 +18,32 @@ export function tokenExpiresAt(token) {
   }
 }
 
+// Spring Page 응답을 화면용 값으로 바꾼다. number는 0부터, 화면의 page는 1부터 센다.
+// 배열 응답도 받아서, 페이징 전 API와 함께 쓸 수 있다.
+export function readPage(data) {
+  if (Array.isArray(data))
+    return { items: data, page: 1, size: data.length, totalPages: 1, totalElements: data.length }
+  const items = Array.isArray(data?.content) ? data.content : []
+  return {
+    items,
+    page: (Number(data?.number) || 0) + 1,
+    size: Number(data?.size) || items.length,
+    totalPages: Number(data?.totalPages) || 0,
+    totalElements: Number(data?.totalElements) || 0,
+  }
+}
+
+// 이름·사진·현재 가격을 연결하려고 전체 토큰을 모은다. 페이지를 차례로 요청한다.
+export async function fetchAllTokens(signal, maxPages = 20) {
+  const tokens = []
+  for (let page = 1; page <= maxPages; page++) {
+    const result = readPage(await api(`/token/all?sort=nameAsc&page=${page}`, { signal }))
+    tokens.push(...result.items)
+    if (page >= result.totalPages || result.items.length === 0) break
+  }
+  return tokens
+}
+
 export async function api(path, { method = 'GET', body, auth = false, signal } = {}) {
   const headers = { Accept: 'application/json, text/plain' }
   if (body !== undefined) headers['Content-Type'] = 'application/json'

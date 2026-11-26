@@ -1,6 +1,6 @@
 import { BrowserRouter, Link, Navigate, Outlet, Route, Routes, useLocation } from 'react-router'
 import AuthProvider from '../auth/AuthProvider'
-import { useAuth } from '../auth/auth'
+import { isAdminMember, useAuth } from '../auth/auth'
 import Layout from '../components/Layout'
 import Home from '../pages/Home'
 import Market from '../pages/Market'
@@ -8,6 +8,8 @@ import TokenList from '../pages/TokenList'
 import TokenDetail from '../pages/TokenDetail'
 import AuthPage from '../pages/AuthPage'
 import Portfolio from '../pages/Portfolio'
+import Ranking from '../pages/Ranking'
+import Admin from '../pages/Admin'
 import { useEffect } from 'react'
 
 function ScrollToTop() {
@@ -26,6 +28,27 @@ function RequireAuth() {
   ) : (
     <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />
   )
+}
+
+// 관리자 화면 보호. 화면을 숨기는 용도이며, 실제 차단은 백엔드(403)가 한다.
+// 새로고침 직후에는 회원 정보가 오기 전이라 기다렸다가 판단한다.
+function RequireAdmin() {
+  const { token, member, memberLoading, memberError } = useAuth()
+  const location = useLocation()
+  if (!token) return <Navigate to="/login" replace state={{ from: location.pathname }} />
+  if (!member && memberLoading)
+    return (
+      <div className="state-box" role="status">
+        <span className="spinner" /> 권한을 확인하는 중이에요.
+      </div>
+    )
+  if (!member)
+    return (
+      <div className="state-box error" role="alert">
+        {memberError?.message || '회원 정보를 확인하지 못했습니다.'}
+      </div>
+    )
+  return isAdminMember(member) ? <Outlet /> : <Navigate to="/" replace />
 }
 
 // 로그인한 사용자가 회원가입·로그인 화면에 다시 들어가지 않도록 한다.
@@ -55,6 +78,10 @@ export default function AppRouter() {
             <Route path="token/all" element={<TokenList />} />
             <Route path="token/search" element={<TokenList search />} />
             <Route path="token/:id" element={<TokenDetail />} />
+            <Route path="ranking" element={<Ranking />} />
+            <Route element={<RequireAdmin />}>
+              <Route path="admin" element={<Admin />} />
+            </Route>
             <Route element={<GuestOnly />}>
               <Route path="login" element={<AuthPage key="login" />} />
               <Route path="signup" element={<AuthPage key="signup" signup />} />
