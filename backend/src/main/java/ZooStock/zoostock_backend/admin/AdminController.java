@@ -25,7 +25,7 @@ public class AdminController {
             @PathVariable Long uid,
             @RequestBody MemberAdminDTO request
             ) {
-        adminService.setMember(uid, request);
-        return ResponseEntity.ok(request);
+        MemberAdminDTO response = adminService.setMember(uid, request);
+        return ResponseEntity.ok(response);
     }
 }

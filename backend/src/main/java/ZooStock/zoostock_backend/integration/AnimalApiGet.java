@@ -2,6 +2,7 @@ package ZooStock.zoostock_backend.integration;
 
 import ZooStock.zoostock_backend.config.AnimalImportProperties;
 import ZooStock.zoostock_backend.market.AnimalImportService;
+import ZooStock.zoostock_backend.market.exception.MarketException;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -32,7 +33,7 @@ public class AnimalApiGet implements CommandLineRunner {
         for (Long taxonId : animalImportProperties.taxonIds()) {
             try {
                 animalImportService.getAnimal(taxonId);
-            } catch (ResponseStatusException | RestClientException e) {
+            } catch (MarketException | RestClientException e) {
                 System.err.println(
                         "동물 등록 실패: " + taxonId + " / " + e.getMessage()
                 );

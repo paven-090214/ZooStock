@@ -2,6 +2,8 @@ package ZooStock.zoostock_backend.market;
 
 import ZooStock.zoostock_backend.integration.AnimalApiClient;
 import ZooStock.zoostock_backend.integration.AnimalApiResponse;
+import ZooStock.zoostock_backend.market.exception.MarketErrorCode;
+import ZooStock.zoostock_backend.market.exception.MarketException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -35,7 +37,7 @@ public class AnimalImportService {
                 response.getResults().get(0).getDefaultPhoto() == null ||
                 response.getResults().get(0).getDefaultPhoto().getMediumUrl() == null
         ) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "동물을 찾을 수 없습니다.");
+            throw new MarketException(MarketErrorCode.ANIMAL_NOT_FOUND);
         }
 
         AnimalApiResponse.AnimalApiData animal = response.getResults().get(0);
@@ -44,11 +46,11 @@ public class AnimalImportService {
         String tokenImg = animal.getDefaultPhoto().getMediumUrl();
 
         if (tokenName == null ||tokenName.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "이름을 찾을 수 없습니다.");
+            throw new MarketException(MarketErrorCode.ANIMAL_NAME_NOT_FOUND);
         }
 
         if (tokenImg == null || tokenImg.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "이미지를 찾을 수 없습니다.");
+            throw new MarketException(MarketErrorCode.ANIMAL_IMAGE_NOT_FOUND);
         }
 
         Long tokenPrice = ThreadLocalRandom.current().nextLong(3000L, 11001L);

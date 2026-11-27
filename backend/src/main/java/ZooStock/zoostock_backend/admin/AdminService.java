@@ -1,6 +1,8 @@
 package ZooStock.zoostock_backend.admin;
 
 import ZooStock.zoostock_backend.admin.dto.MemberAdminDTO;
+import ZooStock.zoostock_backend.admin.exception.AdminErrorCode;
+import ZooStock.zoostock_backend.admin.exception.AdminException;
 import ZooStock.zoostock_backend.member.MemberEntity;
 import ZooStock.zoostock_backend.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,15 +37,23 @@ public class AdminService {
     public MemberAdminDTO setMember(Long memberUid, MemberAdminDTO memberAdminDTO) {
 
         MemberEntity memberEntity = memberRepository.findById(memberUid).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다.")
+                () -> new AdminException(AdminErrorCode.MEMBER_NOT_FOUND)
         );
 
+        if (memberAdminDTO.memberPoint() == null ||
+            memberAdminDTO.memberName() == null ||
+                memberAdminDTO.memberName().isBlank() ||
+                memberAdminDTO.role() == null
+        ) {
+            throw new AdminException(AdminErrorCode.EMPTY_INPUT);
+        }
+
         if (memberAdminDTO.memberPoint() < 0)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "포인트는 음수가 될 수 없습니다.");
+            throw new AdminException(AdminErrorCode.NEGATIVE_POINT);
 
         if (!memberEntity.getMemberName().equals(memberAdminDTO.memberName()) &&
                 memberRepository.existsByMemberName(memberAdminDTO.memberName()))
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이름은 중복될 수 없습니다.");
+            throw new AdminException(AdminErrorCode.DUPLICATE_NAME);
 
         memberEntity.setMemberName(memberAdminDTO.memberName());
         memberEntity.setMemberPoint(memberAdminDTO.memberPoint());
