@@ -41,7 +41,7 @@ let qaBrowser
       const result = [...tokens].sort((a, b) => sort.startsWith('price') ? a.tokenPrice - b.tokenPrice : a.tokenName.localeCompare(b.tokenName))
       if (sort.endsWith('Desc')) result.reverse()
       // 백엔드처럼 1부터 받은 page를 Spring Page 모양(number는 0부터)으로 응답한다.
-      const page = Math.max(1, Number(url.searchParams.get('page')) || 1), size = 50
+      const page = Math.max(1, Number(url.searchParams.get('page')) || 1), size = 30
       return fulfill({ content: result.slice((page - 1) * size, page * size), number: page - 1, size, totalElements: result.length, totalPages: Math.ceil(result.length / size) })
     }
     if (endpoint === '/token/search') return fulfill(tokens.filter((token) => token.tokenName.includes(url.searchParams.get('name'))))
@@ -60,7 +60,8 @@ let qaBrowser
       return fulfill({ memberName, point: memberPoint })
     }
     if (endpoint === '/mypage') return fulfill(holdings)
-    if (endpoint === '/mypage/history') return fulfill([{ tradeId: 1, memberUid: 1, tokenId: 1, quantity: 12, tradePrice: 8200, tradeType: 'BUY', tradedAt: '2026-11-21T03:00:00Z' }])
+    // 거래 기록은 백엔드처럼 Spring Page 모양으로 응답한다.
+    if (endpoint === '/mypage/history') return fulfill({ content: [{ tradeId: 1, memberUid: 1, tokenId: 1, quantity: 12, tradePrice: 8200, tradeType: 'BUY', tradedAt: '2026-11-21T03:00:00Z' }], number: 0, size: 30, totalElements: 1, totalPages: 1 })
     if (endpoint.startsWith('/trade/')) {
       orders++
       await new Promise((resolve) => setTimeout(resolve, 250))

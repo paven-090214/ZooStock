@@ -1,30 +1,49 @@
 import { useCallback } from 'react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import { useAuth } from '../auth/auth'
-import { api, fetchAllTokens } from '../lib/api'
+import { api, fetchAllTokens, readPage } from '../lib/api'
 import { dateTime, points } from '../lib/format'
 import { useResource } from '../hooks/useResource'
-import { Rate, RefreshStatus, ResourceState, TokenImage } from '../components/ui'
+import { Pagination, Rate, RefreshStatus, ResourceState, TokenImage } from '../components/ui'
+
+// 표 제목. numeric이 true인 칸은 숫자 칸과 같이 오른쪽에 맞춘다.
+const HISTORY_COLUMNS = [
+  ['거래 시각', false],
+  ['토큰', false],
+  ['구분', false],
+  ['수량', true],
+  ['체결가', true],
+]
+const HOLDING_COLUMNS = [
+  ['보유 토큰', false],
+  ['보유 수량', true],
+  ['평균 매수가', true],
+  ['현재 가격', true],
+  ['수익률', true],
+]
 
 export default function Portfolio({ history = false }) {
   const { token } = useAuth()
+  const [params, setParams] = useSearchParams()
+  // 거래 기록만 페이지가 있다. 1페이지부터 세고, 잘못된 값은 1페이지로 본다.
+  const page = history ? Math.max(1, Number.parseInt(params.get('page'), 10) || 1) : 1
   const loader = useCallback(
     async (signal) => {
-      const [items, tokens] = await Promise.all([
-        api(history ? '/mypage/history' : '/mypage', { auth: true, signal }),
+      const [data, tokens] = await Promise.all([
+        api(history ? `/mypage/history?page=${page}` : '/mypage', { auth: true, signal }),
         fetchAllTokens(signal),
       ])
       const byId = new Map(tokens.map((item) => [String(item.tokenId), item]))
-      return {
-        items: history
-          ? items.toSorted((a, b) => new Date(b.tradedAt) - new Date(a.tradedAt))
-          : items,
-        byId,
-      }
+      // 거래 기록은 서버가 최신순으로 나눠 보내는 Page, 보유 토큰은 배열이다.
+      return { ...readPage(data), byId }
     },
-    [history],
+    [history, page],
   )
-  const resource = useResource(`personal:${history}:${token}`, loader, 30000)
+  const resource = useResource(`personal:${history}:${page}:${token}`, loader, 30000)
+  const changePage = (value) => {
+    setParams({ page: String(value) })
+    window.scrollTo(0, 0)
+  }
   return (
     <>
       <div className="page-heading">
@@ -42,6 +61,19 @@ export default function Portfolio({ history = false }) {
           {history ? '보유 토큰 보기' : '거래 기록 보기'} ↗
         </Link>
       </div>
+      {history && resource.data && (
+        <div className="list-toolbar">
+          <span>
+            <strong>{resource.data.totalElements}</strong>건의 거래
+            {resource.data.totalPages > 1 && (
+              <small className="toolbar-page">
+                {' '}
+                · {page} / {resource.data.totalPages} 페이지
+              </small>
+            )}
+          </span>
+        </div>
+      )}
       <RefreshStatus resource={resource} />
       <div className="panel">
         <ResourceState
@@ -49,7 +81,9 @@ export default function Portfolio({ history = false }) {
           empty={resource.data?.items.length === 0}
           emptyMessage={
             history
-              ? '아직 거래 기록이 없어요.'
+              ? page > 1
+                ? '이 페이지에는 거래 기록이 없습니다.'
+                : '아직 거래 기록이 없어요.'
               : '아직 보유한 토큰이 없어요. 마켓에서 첫 거래를 시작해보세요.'
           }
         />
@@ -58,11 +92,8 @@ export default function Portfolio({ history = false }) {
             <table>
               <thead>
                 <tr>
-                  {(history
-                    ? ['거래 시각', '토큰', '구분', '수량', '체결가']
-                    : ['보유 토큰', '보유 수량', '평균 매수가', '현재 가격', '수익률']
-                  ).map((title) => (
-                    <th key={title} scope="col">
+                  {(history ? HISTORY_COLUMNS : HOLDING_COLUMNS).map(([title, numeric]) => (
+                    <th key={title} scope="col" className={numeric ? 'numeric' : undefined}>
                       {title}
                     </th>
                   ))}
@@ -119,7 +150,15 @@ export default function Portfolio({ history = false }) {
           </div>
         )}
       </div>
-      {resource.data?.items.length === 0 && (
+      {history && resource.data && (
+        <Pagination
+          page={page}
+          totalPages={resource.data.totalPages}
+          onChange={changePage}
+          label="거래 기록 페이지"
+        />
+      )}
+      {resource.data?.items.length === 0 && page === 1 && (
         <div className="empty-action">
           <Link className="button" to="/token">
             마켓 둘러보기 ↗
