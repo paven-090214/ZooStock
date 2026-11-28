@@ -1,7 +1,12 @@
 package ZooStock.zoostock_backend.member;
 
+import ZooStock.zoostock_backend.common.ApiResponse;
+import ZooStock.zoostock_backend.global.code.BaseSuccessCode;
+import ZooStock.zoostock_backend.global.code.GeneralSuccessCode;
+import ZooStock.zoostock_backend.member.code.MemberSuccessCode;
 import ZooStock.zoostock_backend.member.dto.MemberDTO;
 import ZooStock.zoostock_backend.member.dto.MemberOverviewResponse;
+import ZooStock.zoostock_backend.member.dto.MemberResponse;
 import ZooStock.zoostock_backend.member.dto.TopMemberResponse;
 import ZooStock.zoostock_backend.trade.dto.TokenHoldingResponse;
 import ZooStock.zoostock_backend.trade.dto.TradeHistoryResponse;
@@ -29,51 +34,67 @@ public class MemberController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(
+    public ResponseEntity<ApiResponse<MemberResponse>> signup(
             @RequestBody MemberDTO memberDTO
             ) {
-        memberService.signup(memberDTO);
-        return ResponseEntity.ok("회원가입 성공");
+        BaseSuccessCode code = MemberSuccessCode.SIGN_UP_SUCCESS;
+        MemberResponse result = memberService.signup(memberDTO);
+        return ResponseEntity.status(code.getStatus())
+                .body(ApiResponse.onSuccess(code, result));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(
+    public ResponseEntity<ApiResponse<String>> login(
             @RequestBody MemberDTO memberDTO
     ) {
+        BaseSuccessCode code = MemberSuccessCode.LOGIN_SUCCESS;
         String jwtToken = memberService.login(memberDTO);
-        return ResponseEntity.ok(jwtToken);
+        return ResponseEntity.status(code.getStatus())
+                .body(ApiResponse.onSuccess(code, jwtToken));
     }
 
     @GetMapping("/mypage")
-    public ResponseEntity<List<TokenHoldingResponse>> getMyPage(
+    public ResponseEntity<ApiResponse<List<TokenHoldingResponse>>> getMyPage(
             @RequestAttribute("memberUid") Long memberUid
     ) {
-        return ResponseEntity.ok(
-                memberService.getMyToken(memberUid)
-        );
+        BaseSuccessCode code = GeneralSuccessCode.REQUEST_SUCCESS;
+        List<TokenHoldingResponse> result =
+                memberService.getMyToken(memberUid);
+        return ResponseEntity.status(code.getStatus())
+                .body(ApiResponse.onSuccess(code, result));
     }
 
     @GetMapping("/mypage/history")
-    public ResponseEntity<Page<TradeHistoryResponse>> getMyHistory(
+    public ResponseEntity<ApiResponse<Page<TradeHistoryResponse>>> getMyHistory(
             @RequestAttribute("memberUid") Long memberUid,
             @RequestParam(value = "page", defaultValue = "1") int page
     ) {
-        return ResponseEntity.ok(
-                tradeHistoryService.getMemberTokenList(memberUid, page)
-        );
+        BaseSuccessCode code = GeneralSuccessCode.REQUEST_SUCCESS;
+        Page<TradeHistoryResponse> result = tradeHistoryService.getMemberTokenList(memberUid, page);
+        return ResponseEntity.status(code.getStatus())
+                .body(ApiResponse.onSuccess(code, result));
     }
 
     @GetMapping("/mypage/overview")
-    public ResponseEntity<MemberOverviewResponse> OverViewMember(
+    public ResponseEntity<ApiResponse<MemberOverviewResponse>> overViewMember(
             @RequestAttribute("memberUid") Long memberUid
     ) {
-        return ResponseEntity.ok(memberService.OverViewMember(memberUid));
+        MemberOverviewResponse result =
+                memberService.overViewMember(memberUid);
+        BaseSuccessCode code =
+                GeneralSuccessCode.REQUEST_SUCCESS;
+        return ResponseEntity.status(code.getStatus())
+                .body(ApiResponse.onSuccess(code, result));
     }
 
     @GetMapping("/ranking")
-    public ResponseEntity<Page<TopMemberResponse>> topMemberRanking(
+    public ResponseEntity<ApiResponse<Page<TopMemberResponse>>> topMemberRanking(
             @RequestParam(value = "page", defaultValue = "1") int page
     ) {
-        return ResponseEntity.ok(memberService.topMemberRanking(page));
+        BaseSuccessCode code =
+                GeneralSuccessCode.REQUEST_SUCCESS;
+        Page<TopMemberResponse> result = memberService.topMemberRanking(page);
+        return ResponseEntity.status(code.getStatus())
+                .body(ApiResponse.onSuccess(code, result));
     }
 }

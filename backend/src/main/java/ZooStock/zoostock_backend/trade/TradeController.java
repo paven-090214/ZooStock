@@ -1,5 +1,9 @@
 package ZooStock.zoostock_backend.trade;
 
+import ZooStock.zoostock_backend.common.ApiResponse;
+import ZooStock.zoostock_backend.global.code.BaseSuccessCode;
+import ZooStock.zoostock_backend.trade.code.TradeSuccessCode;
+import ZooStock.zoostock_backend.trade.dto.TradeResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,23 +20,27 @@ public class TradeController {
     }
 
     @PostMapping("/trade/{tokenId}/buy")
-    public ResponseEntity<String> buyToken(
+    public ResponseEntity<ApiResponse<TradeResponse>> buyToken(
             @PathVariable Long tokenId,
             @RequestParam Long quantity,
             @RequestAttribute("memberUid") Long memberUid
     ) {
-        tradeService.buyToken(memberUid, tokenId, quantity);
-        return ResponseEntity.ok("매수에 성공했습니다.");
+        TradeResponse result = tradeService.buyToken(memberUid, tokenId, quantity);
+        BaseSuccessCode code = TradeSuccessCode.BUY_SUCCESS;
+        return ResponseEntity.status(code.getStatus())
+                .body(ApiResponse.onSuccess(code, result));
     }
 
     @PostMapping("/trade/{tokenId}/sell")
-    public ResponseEntity<String> sellToken(
+    public ResponseEntity<ApiResponse<TradeResponse>> sellToken(
             @PathVariable Long tokenId,
             @RequestParam Long quantity,
             HttpServletRequest request
     ) {
         Long memberUid = (Long) request.getAttribute("memberUid");
-        tradeService.sellToken(memberUid, tokenId, quantity);
-        return ResponseEntity.ok("매도에 성공했습니다.");
+        TradeResponse result = tradeService.sellToken(memberUid, tokenId, quantity);
+        BaseSuccessCode code = TradeSuccessCode.SELL_SUCCESS;
+        return ResponseEntity.status(code.getStatus())
+                .body(ApiResponse.onSuccess(code, result));
     }
 }

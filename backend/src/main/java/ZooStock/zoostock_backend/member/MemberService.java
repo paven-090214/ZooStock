@@ -5,6 +5,7 @@ import ZooStock.zoostock_backend.market.TokenEntity;
 import ZooStock.zoostock_backend.market.TokenRepository;
 import ZooStock.zoostock_backend.member.dto.MemberDTO;
 import ZooStock.zoostock_backend.member.dto.MemberOverviewResponse;
+import ZooStock.zoostock_backend.member.dto.MemberResponse;
 import ZooStock.zoostock_backend.member.dto.TopMemberResponse;
 import ZooStock.zoostock_backend.member.exception.MemberErrorCode;
 import ZooStock.zoostock_backend.member.exception.MemberException;
@@ -35,7 +36,7 @@ public class MemberService {
     private final TokenRepository tokenRepository;
 
     @Transactional
-    public void signup(MemberDTO memberDTO) {
+    public MemberResponse signup(MemberDTO memberDTO) {
         boolean existsId = memberRepository.existsByMemberId(memberDTO.getMemberId());
         boolean existsName = memberRepository.existsByMemberName(memberDTO.getMemberName());
 
@@ -67,6 +68,12 @@ public class MemberService {
         memberEntity.setMemberPoint(50000L);
         memberEntity.setRole(RoleType.USER);
         memberRepository.save(memberEntity);
+
+        return new MemberResponse(
+                memberEntity.getMemberUid(),
+                memberEntity.getMemberId(),
+                memberEntity.getMemberName()
+        );
     }
 
     @Transactional
@@ -126,7 +133,7 @@ public class MemberService {
                 .toList();
     }
 
-    public MemberOverviewResponse OverViewMember(Long memberUid) {
+    public MemberOverviewResponse overViewMember(Long memberUid) {
 
         if (memberUid == null)
             throw new MemberException(MemberErrorCode.MEMBER_NOT_FOUND);

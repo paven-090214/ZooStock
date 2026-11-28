@@ -16,7 +16,11 @@ public enum AdminErrorCode implements BaseErrorCode {
     DUPLICATE_NAME(HttpStatus.BAD_REQUEST, "ADMIN400_2",
             "이름은 중복될 수 없습니다."),
     EMPTY_INPUT(HttpStatus.BAD_REQUEST, "ADMIN400_3",
-            "비어있는 값이 존재합니다.");
+            "비어있는 값이 존재합니다."),
+    INVALID_PAGE(HttpStatus.BAD_REQUEST, "ADMIN400_4",
+            "존재하지 않는 페이지 입니다."),
+    FORBIDDEN(HttpStatus.FORBIDDEN, "ADMIN403_1",
+            "권한이 없습니다.");
 
     private final HttpStatus status;
     private final String code;

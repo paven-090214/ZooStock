@@ -1,6 +1,7 @@
 package ZooStock.zoostock_backend.common;
 
 import ZooStock.zoostock_backend.global.code.BaseErrorCode;
+import ZooStock.zoostock_backend.global.code.BaseSuccessCode;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
@@ -17,5 +18,14 @@ public record ApiResponse<T>(
                 baseErrorCode.getCode(),
                 baseErrorCode.getMessage(),
                 null);
+    }
+
+    public static <T> ApiResponse<T> onSuccess(BaseSuccessCode baseSuccessCode, T result) {
+        return new ApiResponse<>(
+                true,
+                baseSuccessCode.getCode(),
+                baseSuccessCode.getMessage(),
+                result
+        );
     }
 }

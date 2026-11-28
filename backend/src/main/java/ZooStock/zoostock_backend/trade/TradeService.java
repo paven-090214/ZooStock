@@ -4,6 +4,7 @@ import ZooStock.zoostock_backend.member.MemberEntity;
 import ZooStock.zoostock_backend.member.MemberRepository;
 import ZooStock.zoostock_backend.market.TokenEntity;
 import ZooStock.zoostock_backend.market.TokenRepository;
+import ZooStock.zoostock_backend.trade.dto.TradeResponse;
 import ZooStock.zoostock_backend.trade.exception.TradeErrorCode;
 import ZooStock.zoostock_backend.trade.exception.TradeException;
 import jakarta.transaction.Transactional;
@@ -37,7 +38,7 @@ public class TradeService {
     }
 
     @Transactional
-    public void sellToken(
+    public TradeResponse sellToken(
             Long memberUid,
             Long tokenId,
             Long quantity
@@ -90,11 +91,20 @@ public class TradeService {
             tokenHoldingEntity.setQuantity(holdingQuantity);
             tokenHoldingRepository.save(tokenHoldingEntity);
         }
+
         memberRepository.save(memberEntity);
+        return new TradeResponse(
+                tokenId,
+                tokenEntity.getTokenName(),
+                tokenPrice,
+                quantity,
+                tradeHistoryEntity.getTradedAt()
+        );
+
     }
 
     @Transactional
-    public void buyToken(
+    public TradeResponse buyToken(
             Long memberUid,
             Long tokenId,
             Long quantity
@@ -156,7 +166,14 @@ public class TradeService {
         tradeHistoryEntity.setTradedAt(date);
 
         tradeHistoryRepository.save(tradeHistoryEntity);
-
         tokenHoldingRepository.save(tokenHoldingEntity);
+
+        return new TradeResponse(
+                tokenId,
+                token.getTokenName(),
+                token.getTokenPrice(),
+                quantity,
+                tradeHistoryEntity.getTradedAt()
+        );
     }
 }

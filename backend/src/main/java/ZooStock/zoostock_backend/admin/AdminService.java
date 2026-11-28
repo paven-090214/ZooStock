@@ -6,6 +6,10 @@ import ZooStock.zoostock_backend.admin.exception.AdminException;
 import ZooStock.zoostock_backend.member.MemberEntity;
 import ZooStock.zoostock_backend.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -18,9 +22,18 @@ public class AdminService {
 
     private final MemberRepository memberRepository;
 
-    public List<MemberAdminDTO> adminPage() {
-        return memberRepository.findAll()
-                .stream()
+    public Page<MemberAdminDTO> adminPage(int page) {
+
+        if (page <= 0)
+            throw new AdminException(AdminErrorCode.INVALID_PAGE);
+
+        Pageable pageable = PageRequest.of(
+                page - 1,
+                10,
+                Sort.by(Sort.Direction.ASC, "memberUid")
+        );
+
+        return memberRepository.findAll(pageable)
                 .map(
                         member -> member.toMemberAdminVer(
                                 member.getMemberUid(),
@@ -30,8 +43,7 @@ public class AdminService {
                                 member.getMemberCreatedAt(),
                                 member.getRole()
                         )
-                )
-                .toList();
+                );
     }
 
     public MemberAdminDTO setMember(Long memberUid, MemberAdminDTO memberAdminDTO) {
