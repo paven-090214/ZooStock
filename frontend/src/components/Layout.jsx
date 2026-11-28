@@ -30,11 +30,9 @@ export default function Layout() {
               마켓
             </NavLink>
             <NavLink to="/token/all">전체 토큰</NavLink>
-
             <NavLink to="/board">게시판</NavLink>
-
             <NavLink to="/ranking">랭킹</NavLink>
-
+            {isAdmin && <NavLink to="/admin">관리자</NavLink>}
           </nav>
           <form className="header-search" role="search" onSubmit={search}>
             <span aria-hidden="true">⌕</span>
