@@ -1,9 +1,10 @@
 import { useCallback, useState } from 'react'
+import { useSearchParams } from 'react-router'
 import { useAuth } from '../auth/auth'
-import { api } from '../lib/api'
+import { api, readPage } from '../lib/api'
 import { dateTime, points } from '../lib/format'
 import { useResource } from '../hooks/useResource'
-import { RefreshStatus, ResourceState } from '../components/ui'
+import { Pagination, RefreshStatus, ResourceState } from '../components/ui'
 
 const ROLES = [
   ['USER', '일반 회원'],
@@ -111,17 +112,25 @@ function MemberEditor({ member, isSelf, onCancel, onSaved }) {
 
 export default function Admin() {
   const { token, member: me, refreshMember } = useAuth()
+  const [params, setParams] = useSearchParams()
+  // 회원 목록은 서버가 회원 번호 순으로 10명씩 나눠 보낸다. 1페이지부터 센다.
+  const page = Math.max(1, Number.parseInt(params.get('page'), 10) || 1)
   const [editing, setEditing] = useState(null)
   const [saved, setSaved] = useState(null)
   const loader = useCallback(
-    (signal) => api('/admin/members', { auth: true, signal }),
-    [],
+    async (signal) => readPage(await api(`/admin/members?page=${page}`, { auth: true, signal })),
+    [page],
   )
   // 수정 중에 목록이 바뀌지 않도록 자동 갱신은 하지 않는다.
-  const resource = useResource(`admin-members:${token}`, loader, 0)
-  const members = Array.isArray(resource.data)
-    ? resource.data.toSorted((a, b) => a.memberUid - b.memberUid)
-    : null
+  const resource = useResource(`admin-members:${page}:${token}`, loader, 0)
+  const list = resource.data
+  const members = list ? list.items : null
+  const changePage = (value) => {
+    setEditing(null)
+    setSaved(null)
+    setParams({ page: String(value) })
+    window.scrollTo(0, 0)
+  }
   return (
     <>
       <div className="page-heading">
@@ -135,7 +144,13 @@ export default function Admin() {
       </div>
       <div className="list-toolbar">
         <span>
-          <strong>{members ? members.length : '—'}</strong>명의 회원
+          <strong>{list ? list.totalElements : '—'}</strong>명의 회원
+          {list?.totalPages > 1 && (
+            <small className="toolbar-page">
+              {' '}
+              · {page} / {list.totalPages} 페이지
+            </small>
+          )}
         </span>
       </div>
       <RefreshStatus resource={resource} auto={false} />
@@ -213,6 +228,14 @@ export default function Admin() {
           </div>
         )}
       </div>
+      {list && (
+        <Pagination
+          page={page}
+          totalPages={list.totalPages}
+          onChange={changePage}
+          label="회원 목록 페이지"
+        />
+      )}
     </>
   )
 }

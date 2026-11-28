@@ -44,7 +44,14 @@ export async function fetchAllTokens(signal, maxPages = 20) {
   return tokens
 }
 
-export async function api(path, { method = 'GET', body, auth = false, signal } = {}) {
+// 백엔드 공통 응답 { isSuccess, code, message, result } 인지 확인한다.
+const isApiResponse = (data) =>
+  typeof data === 'object' && data !== null && typeof data.isSuccess === 'boolean' && 'result' in data
+
+// 성공하면 화면에서 쓰는 데이터(result)만 돌려준다.
+// envelope가 true면 message까지 쓰도록 공통 응답 전체를 돌려준다(거래 완료 문구 등).
+// 아직 공통 응답으로 바뀌지 않은 API(게시판 등)는 받은 값을 그대로 쓴다.
+export async function api(path, { method = 'GET', body, auth = false, signal, envelope = false } = {}) {
   const headers = { Accept: 'application/json, text/plain' }
   if (body !== undefined) headers['Content-Type'] = 'application/json'
   if (auth) {
@@ -72,7 +79,7 @@ export async function api(path, { method = 'GET', body, auth = false, signal } =
   try {
     data = JSON.parse(text)
   } catch {
-    /* 로그인 JWT·거래 응답은 일반 문자열이다. */
+    /* 공통 응답이 아닌 오류(필터의 401, 낙관적 락 409 등)는 일반 문자열일 수 있다. */
   }
   if (!response.ok) {
     if (auth && response.status === 401) window.dispatchEvent(new Event('zoostock:expired'))
@@ -93,5 +100,9 @@ export async function api(path, { method = 'GET', body, auth = false, signal } =
           : null
     throw new ApiError(response.status, message || fallback)
   }
-  return data
+  if (envelope)
+    return isApiResponse(data)
+      ? data
+      : { isSuccess: true, message: typeof data === 'string' ? data : null, result: data }
+  return isApiResponse(data) ? data.result : data
 }

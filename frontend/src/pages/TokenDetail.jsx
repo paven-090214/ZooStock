@@ -46,14 +46,21 @@ function OrderPanel({ token, holding, refresh, holdingError }) {
     setBusy(true)
     setNotice(null)
     try {
-      const result = await api(`/trade/${token.tokenId}/${side}?quantity=${quantity}`, {
+      // 성공 문구(message)와 체결 결과(result)를 함께 쓰려고 공통 응답 전체를 받는다.
+      const response = await api(`/trade/${token.tokenId}/${side}?quantity=${quantity}`, {
         method: 'POST',
         auth: true,
         signal: controller.current.signal,
+        envelope: true,
       })
+      const trade = response.result
+      const detail =
+        trade && typeof trade === 'object' && trade.quantity != null && trade.price != null
+          ? ` ${points(trade.quantity)}개 × ${points(trade.price)} P`
+          : ''
       setNotice({
         type: 'success',
-        message: typeof result === 'string' ? result : '거래가 완료되었습니다.',
+        message: `${response.message || '거래가 완료되었습니다.'}${detail}`,
       })
       setConfirming(false)
       // 거래가 끝나면 수량을 1로 되돌린다. 매도 후 줄어든 보유 수량과 비교되어
