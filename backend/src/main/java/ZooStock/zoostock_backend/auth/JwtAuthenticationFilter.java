@@ -1,8 +1,5 @@
 package ZooStock.zoostock_backend.auth;
 
-import ZooStock.zoostock_backend.member.MemberEntity;
-import ZooStock.zoostock_backend.member.MemberRepository;
-import ZooStock.zoostock_backend.member.RoleType;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -19,7 +16,6 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
-    private final MemberRepository memberRepository;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -87,14 +83,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        if (path.startsWith("/admin/")) {
-            RoleType role = memberRepository.findById(memberUid)
-                    .map(MemberEntity::getRole).orElse(null);
-            if (role != RoleType.ADMIN){
-                response.sendError(403, "권한이 없습니다.");
-                return;
-            }
-        }
         filterChain.doFilter(request, response);
     }
 

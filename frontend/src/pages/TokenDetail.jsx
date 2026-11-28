@@ -46,16 +46,26 @@ function OrderPanel({ token, holding, refresh, holdingError }) {
     setBusy(true)
     setNotice(null)
     try {
-      const result = await api(`/trade/${token.tokenId}/${side}?quantity=${quantity}`, {
+      // 성공 문구(message)와 체결 결과(result)를 함께 쓰려고 공통 응답 전체를 받는다.
+      const response = await api(`/trade/${token.tokenId}/${side}?quantity=${quantity}`, {
         method: 'POST',
         auth: true,
         signal: controller.current.signal,
+        envelope: true,
       })
+      const trade = response.result
+      const detail =
+        trade && typeof trade === 'object' && trade.quantity != null && trade.price != null
+          ? ` ${points(trade.quantity)}개 × ${points(trade.price)} P`
+          : ''
       setNotice({
         type: 'success',
-        message: typeof result === 'string' ? result : '거래가 완료되었습니다.',
+        message: `${response.message || '거래가 완료되었습니다.'}${detail}`,
       })
       setConfirming(false)
+      // 거래가 끝나면 수량을 1로 되돌린다. 매도 후 줄어든 보유 수량과 비교되어
+      // "보유 수량보다 많습니다" 문구가 바로 뜨는 것을 막는다.
+      setQuantity('1')
       refresh()
       // 서버가 거래를 확정한 후 잔액을 다시 조회해 공통 헤더에 반영한다.
       refreshMember()
@@ -176,10 +186,13 @@ function OrderPanel({ token, holding, refresh, holdingError }) {
             검증합니다.
           </p>
           {insufficient && (
-            <p className="form-hint error">
+            // 보유 수량이 0인 것은 오류가 아니라 현재 상태라서 회색 안내로 보여준다.
+            <p className={`form-hint ${!holdingError && !holding ? '' : 'error'}`}>
               {holdingError
                 ? '보유 수량을 확인하지 못했습니다. 새로고침해주세요.'
-                : '매도할 수량이 보유 수량보다 많습니다.'}
+                : !holding
+                  ? '보유한 수량이 없어 매도할 수 없습니다.'
+                  : '매도할 수량이 보유 수량보다 많습니다.'}
             </p>
           )}
           {notice && (
@@ -330,7 +343,8 @@ export default function TokenDetail() {
               )}
               <p className="panel-footnote">
                 최근 {periodLabel}의 실제 저장 기록 · 한국 시각 기준
-                {accessToken && ' · 빨간 점은 내 매수, 파란 점은 내 매도'}
+                {accessToken &&
+                  ' · 빨간 점은 내 매수, 파란 점은 내 매도, 숫자가 있는 점은 가까운 매매 묶음'}
                 {accessToken && trades.error && ' · 매매 기록을 불러오지 못했습니다'}
               </p>
             </section>

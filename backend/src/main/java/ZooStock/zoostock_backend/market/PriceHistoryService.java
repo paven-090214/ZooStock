@@ -4,6 +4,8 @@ import ZooStock.zoostock_backend.market.dto.DailyRankingResponse;
 import ZooStock.zoostock_backend.market.dto.PriceHistoryResponse;
 import ZooStock.zoostock_backend.market.dto.TokenChangeProjection;
 import ZooStock.zoostock_backend.market.dto.TokenDTO;
+import ZooStock.zoostock_backend.market.exception.MarketErrorCode;
+import ZooStock.zoostock_backend.market.exception.MarketException;
 import ZooStock.zoostock_backend.trade.TradeHistoryRepository;
 import ZooStock.zoostock_backend.trade.dto.TradeHistoryResponse;
 import org.springframework.http.HttpStatus;
@@ -81,16 +83,16 @@ public class PriceHistoryService {
     public List<PriceHistoryResponse> getTokenHistory (Long tokenId, String time) {
 
         if (tokenId == null)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "토큰의 검색 결과가 없습니다.");
+            throw new MarketException(MarketErrorCode.TOKEN_NOT_FOUND);
 
 
         if (time == null || time.isBlank())
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "정해진 시간을 입력해주세요.");
+            throw new MarketException(MarketErrorCode.INVALID_PERIOD);
 
         boolean exists = tokenRepository.existsByTokenId(tokenId);
 
         if (!exists)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "토큰을 찾을 수 없습니다.");
+            throw new MarketException(MarketErrorCode.TOKEN_NOT_FOUND);
 
         LocalDateTime end = LocalDateTime.now();
         LocalDateTime start;
@@ -106,7 +108,7 @@ public class PriceHistoryService {
                 start = end.minusDays(1);
                 break;
             default:
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "기간 설정이 잘못되었습니다.");
+                throw new MarketException(MarketErrorCode.INVALID_PERIOD);
         }
 
         return priceHistoryRepository.findByTokenIdAndRecordedAtGreaterThanEqualAndRecordedAtLessThanOrderByRecordedAtAsc(
@@ -151,12 +153,14 @@ public class PriceHistoryService {
 
     public List<TradeHistoryResponse> responsePriceHistory(Long memberUid, Long tokenId, String time) {
 
-        if (memberUid == null ||
-        tokenId == null)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원 또는 토큰 조회 실패");
+        if (memberUid == null)
+            throw new MarketException(MarketErrorCode.MEMBER_NOT_FOUND);
+
+        if (tokenId == null)
+            throw new MarketException(MarketErrorCode.TOKEN_NOT_FOUND);
 
         if (time == null || time.isBlank())
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "기간 설정 예외");
+            throw new MarketException(MarketErrorCode.INVALID_PERIOD);
 
         Date end = new Date();
 
@@ -177,9 +181,7 @@ public class PriceHistoryService {
                 break;
 
             default:
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, "잘못된 날짜 설정"
-                );
+                throw new MarketException(MarketErrorCode.INVALID_PERIOD);
         }
 
         Date start = cal.getTime();

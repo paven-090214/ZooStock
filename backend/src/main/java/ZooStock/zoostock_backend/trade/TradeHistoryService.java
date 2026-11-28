@@ -1,11 +1,13 @@
 package ZooStock.zoostock_backend.trade;
 
 import ZooStock.zoostock_backend.trade.dto.TradeHistoryResponse;
-import org.springframework.http.HttpStatus;
+import ZooStock.zoostock_backend.trade.exception.TradeErrorCode;
+import ZooStock.zoostock_backend.trade.exception.TradeException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
 
 @Service
 public class TradeHistoryService {
@@ -19,11 +21,21 @@ public class TradeHistoryService {
     }
 
 
-    public List<TradeHistoryResponse> getMemebrTokenList(Long memberUid) {
+    public Page<TradeHistoryResponse> getMemberTokenList(Long memberUid, int page) {
+
+        if (page <= 0)
+            throw new TradeException(TradeErrorCode.INVALID_PAGE);
+
         if (memberUid == null)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "조회에 실패했습니다.");
-        return tradeHistoryRepository.findByMemberUid(memberUid)
-                .stream()
+            throw new TradeException(TradeErrorCode.MEMBER_NOT_FOUND);
+
+        Pageable pageable = PageRequest.of(
+                page - 1,
+                30,
+                Sort.by(Sort.Direction.DESC, "tradedAt")
+        );
+
+        return tradeHistoryRepository.findByMemberUid(memberUid, pageable)
                 .map(
                         token -> token.toTradeHistoryResponse(
                                 token.getTradeId(),
@@ -34,7 +46,6 @@ public class TradeHistoryService {
                                 token.getTradedAt(),
                                 token.getTradeType()
                         )
-                )
-                .toList();
+                );
     }
 }

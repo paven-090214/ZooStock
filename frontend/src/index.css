@@ -2181,6 +2181,13 @@ tbody tr:hover {
   fill: var(--blue);
   font-weight: 600;
 }
+/* 묶인 매매 점 안의 건수 */
+.price-chart .trade-count {
+  fill: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  pointer-events: none;
+}
 
 /* ── 랭킹 ── */
 .ranking-table th:last-child,

@@ -5,7 +5,10 @@ import ZooStock.zoostock_backend.market.TokenEntity;
 import ZooStock.zoostock_backend.market.TokenRepository;
 import ZooStock.zoostock_backend.member.dto.MemberDTO;
 import ZooStock.zoostock_backend.member.dto.MemberOverviewResponse;
+import ZooStock.zoostock_backend.member.dto.MemberResponse;
 import ZooStock.zoostock_backend.member.dto.TopMemberResponse;
+import ZooStock.zoostock_backend.member.exception.MemberErrorCode;
+import ZooStock.zoostock_backend.member.exception.MemberException;
 import ZooStock.zoostock_backend.trade.TokenHoldingRepository;
 import ZooStock.zoostock_backend.trade.dto.TokenHoldingResponse;
 import lombok.RequiredArgsConstructor;
@@ -33,17 +36,16 @@ public class MemberService {
     private final TokenRepository tokenRepository;
 
     @Transactional
-    public void signup(MemberDTO memberDTO) {
+    public MemberResponse signup(MemberDTO memberDTO) {
         boolean existsId = memberRepository.existsByMemberId(memberDTO.getMemberId());
         boolean existsName = memberRepository.existsByMemberName(memberDTO.getMemberName());
 
-        if (existsId) {
-            throw new IllegalArgumentException("이미 존재하는 아이디 입니다.");
-        }
+        if (existsId)
+            throw new MemberException(MemberErrorCode.DUPLICATE_ID);
 
-        if (existsName) {
-            throw new IllegalArgumentException("이미 존재하는 별명 입니다.");
-        }
+
+        if (existsName)
+            throw new MemberException(MemberErrorCode.DUPLICATE_NAME);
 
         if (
                 memberDTO.getMemberId() == null ||
@@ -53,7 +55,7 @@ public class MemberService {
                         memberDTO.getMemberName() == null ||
                         memberDTO.getMemberName().isBlank()
         ) {
-            throw new IllegalArgumentException("칸을 비울 수 없습니다.");
+            throw new MemberException(MemberErrorCode.EMPTY_INPUT);
         }
 
         MemberEntity memberEntity = new MemberEntity();
@@ -66,16 +68,16 @@ public class MemberService {
         memberEntity.setMemberPoint(50000L);
         memberEntity.setRole(RoleType.USER);
         memberRepository.save(memberEntity);
+
+        return new MemberResponse(
+                memberEntity.getMemberUid(),
+                memberEntity.getMemberId(),
+                memberEntity.getMemberName()
+        );
     }
 
     @Transactional
     public String login(MemberDTO memberDTO) {
-
-        Optional<MemberEntity> memberOptional =
-                memberRepository.findByMemberId(memberDTO.getMemberId());
-        if (memberOptional.isEmpty()) {
-            throw new IllegalArgumentException("아이디가 존재하지 않습니다.");
-        }
 
         if (
                 memberDTO.getMemberId() == null ||
@@ -83,7 +85,13 @@ public class MemberService {
                         memberDTO.getMemberPassword() == null ||
                         memberDTO.getMemberPassword().isBlank()
         ) {
-            throw new IllegalArgumentException("값이 비어있을 수 없습니다.");
+            throw new MemberException(MemberErrorCode.EMPTY_INPUT);
+        }
+
+        Optional<MemberEntity> memberOptional =
+                memberRepository.findByMemberId(memberDTO.getMemberId());
+        if (memberOptional.isEmpty()) {
+            throw new MemberException(MemberErrorCode.ID_NOT_FOUND);
         }
 
         MemberEntity memberEntity = memberOptional.get();
@@ -98,13 +106,13 @@ public class MemberService {
             return jwtProvider.createAccessToken(memberEntity.getMemberUid());
         }
         else {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+            throw new MemberException(MemberErrorCode.WRONG_PASSWORD);
         }
     }
 
     public List<TokenHoldingResponse> getMyToken(Long memberUid) {
         if (memberUid == null)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "정보를 찾을 수 없습니다.");
+            throw new MemberException(MemberErrorCode.MEMBER_NOT_FOUND);
 
         return tokenHoldingRepository.findByMemberUid(memberUid)
                 .stream()
@@ -125,10 +133,10 @@ public class MemberService {
                 .toList();
     }
 
-    public MemberOverviewResponse OverViewMember(Long memberUid) {
+    public MemberOverviewResponse overViewMember(Long memberUid) {
 
         if (memberUid == null)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원 인증이 되지 않았습니다.");
+            throw new MemberException(MemberErrorCode.MEMBER_NOT_FOUND);
 
         return memberRepository.findById(memberUid)
                 .map(
@@ -139,13 +147,13 @@ public class MemberService {
                         )
                 )
                 .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "회원 조회 실패")
+                () -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND)
         );
     }
 
     public Page<TopMemberResponse> topMemberRanking(int page) {
         if (page <= 0)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "존재하지 않는 페이지 입니다.");
+            throw new MemberException(MemberErrorCode.INVALID_PAGE);
 
         Pageable pageable = PageRequest.of(page - 1, 10);
         return memberRepository.findTopMember(pageable);
