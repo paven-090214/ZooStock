@@ -1,10 +1,12 @@
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
-import { useAuth } from '../auth/auth'
+import { isAdminMember, useAuth } from '../auth/auth'
 import { points } from '../lib/format'
 
 export default function Layout() {
   const { token, expired, signOut, member, memberLoading, memberError, refreshMember } = useAuth()
   const navigate = useNavigate()
+  // 메뉴 표시용일 뿐, 실제 권한 검사는 백엔드가 한다.
+  const isAdmin = isAdminMember(member)
   function search(event) {
     event.preventDefault()
     const name = new FormData(event.currentTarget).get('name').trim()
@@ -28,7 +30,11 @@ export default function Layout() {
               마켓
             </NavLink>
             <NavLink to="/token/all">전체 토큰</NavLink>
+
             <NavLink to="/board">게시판</NavLink>
+
+            <NavLink to="/ranking">랭킹</NavLink>
+
           </nav>
           <form className="header-search" role="search" onSubmit={search}>
             <span aria-hidden="true">⌕</span>

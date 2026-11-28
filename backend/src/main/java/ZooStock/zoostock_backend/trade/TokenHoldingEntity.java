@@ -3,10 +3,13 @@ package ZooStock.zoostock_backend.trade;
 import ZooStock.zoostock_backend.trade.dto.TokenHoldingResponse;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Getter
+@Setter
 @Entity
 @Table(
         name = "token_holding",
@@ -35,51 +38,29 @@ public class TokenHoldingEntity {
     @Column(name = "token_id")
     private Long tokenId;
 
-    public Long getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Long quantity) {
-        this.quantity = quantity;
-    }
-
-    public BigDecimal getBuyPriceAvg() {
-        return buyPriceAvg;
-    }
-
-    public void setBuyPriceAvg(BigDecimal buyPriceAvg) {
-        this.buyPriceAvg = buyPriceAvg;
-    }
-
-    public Long getMemberUid() {
-        return memberUid;
-    }
-
-    public void setMemberUid(Long memberUid) {
-        this.memberUid = memberUid;
-    }
-
-    public Long getTokenId() {
-        return tokenId;
-    }
-
-    public void setTokenId(Long tokenId) {
-        this.tokenId = tokenId;
-    }
-
-    public TokenHoldingResponse toTradeHistoryResponse(
+    public TokenHoldingResponse toTokenHoldingResponse(
             Long holdingId,
             Long memberUid,
             Long tokenId,
             Long quantity,
-            BigDecimal buyPriceAvg
+            BigDecimal buyPriceAvg,
+            BigDecimal profitRate
     ) {
         return new TokenHoldingResponse(
                 holdingId,
                 memberUid,
                 tokenId,
                 quantity,
-                buyPriceAvg
+                buyPriceAvg,
+                profitRate
         );
+    }
+
+    // 가격 변동률 계산 메서드
+    public BigDecimal calculateProfitRate(Long currentPrice) {
+        return BigDecimal.valueOf(currentPrice)
+                .subtract(buyPriceAvg)
+                .multiply(BigDecimal.valueOf(100))
+                .divide(buyPriceAvg, 2, RoundingMode.HALF_UP);
     }
 }

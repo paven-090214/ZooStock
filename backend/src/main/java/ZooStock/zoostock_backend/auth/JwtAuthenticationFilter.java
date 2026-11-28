@@ -5,21 +5,17 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+@RequiredArgsConstructor
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
-
-    public JwtAuthenticationFilter(
-            JwtProvider jwtProvider
-    ) {
-        this.jwtProvider = jwtProvider;
-    }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -43,6 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         || path.matches("/token/search/[0-9]+")
                         || path.matches("/board/[0-9]+")
                         || path.matches("/token/[0-9]+")
+                        ||path.equals("/ranking")
         );
 
         // Swagger 화면과 API 문서
@@ -75,9 +72,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String memberToken = authorization.substring(7);
+        Long memberUid;
+        String path = request.getServletPath();
 
         try {
-            Long memberUid = jwtProvider.getMemberUid(memberToken);
+            memberUid = jwtProvider.getMemberUid(memberToken);
             request.setAttribute("memberUid", memberUid);
         } catch (JwtException | IllegalArgumentException e) {
             response.sendError(401, "JWT인증에 실패했습니다.");

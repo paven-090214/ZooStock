@@ -4,6 +4,9 @@ import ZooStock.zoostock_backend.member.MemberEntity;
 import ZooStock.zoostock_backend.member.MemberRepository;
 import ZooStock.zoostock_backend.market.TokenEntity;
 import ZooStock.zoostock_backend.market.TokenRepository;
+import ZooStock.zoostock_backend.trade.dto.TradeResponse;
+import ZooStock.zoostock_backend.trade.exception.TradeErrorCode;
+import ZooStock.zoostock_backend.trade.exception.TradeException;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -35,14 +38,14 @@ public class TradeService {
     }
 
     @Transactional
-    public void sellToken(
+    public TradeResponse sellToken(
             Long memberUid,
             Long tokenId,
             Long quantity
     ){
-        if (quantity <= 0) {
-            throw new IllegalArgumentException("매도 수량은 1주 이상이여야 합니다.");
-        }
+        if (quantity <= 0)
+            throw new TradeException(TradeErrorCode.INVALID_QUANTITY);
+
         Optional<TokenEntity> tokenOptional = tokenRepository.findById(tokenId);
         Optional<MemberEntity> memberOptional = memberRepository.findById(memberUid);
         Optional<TokenHoldingEntity> tokenHoldingOptional =
@@ -51,21 +54,21 @@ public class TradeService {
 
         Date date = new Date();
 
-        if (tokenHoldingOptional.isEmpty() || memberOptional.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "존재하지 않는 사용자 또는 보유하고 있지 않은 토큰 입니다.");
-        }
+        if (tokenHoldingOptional.isEmpty())
+            throw new TradeException(TradeErrorCode.HOLDING_NOT_FOUND);
+
+        if (memberOptional.isEmpty())
+            throw new TradeException(TradeErrorCode.MEMBER_NOT_FOUND);
 
         TokenHoldingEntity tokenHoldingEntity = tokenHoldingOptional.get();
         MemberEntity memberEntity = memberOptional.get();
         Long holdingQuantity = tokenHoldingEntity.getQuantity();
 
-        if (tokenOptional.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "존재하지 않는 토큰입니다.");
-        }
+        if (tokenOptional.isEmpty())
+            throw new TradeException(TradeErrorCode.TOKEN_NOT_FOUND);
 
-        if (holdingQuantity < quantity) {
-             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "코인이 부족합니다.");
-         }
+        if (holdingQuantity < quantity)
+            throw new TradeException(TradeErrorCode.NOT_ENOUGH_TOKEN);
 
         TokenEntity tokenEntity = tokenOptional.get();
         Long tokenPrice = tokenEntity.getTokenPrice();
@@ -88,18 +91,26 @@ public class TradeService {
             tokenHoldingEntity.setQuantity(holdingQuantity);
             tokenHoldingRepository.save(tokenHoldingEntity);
         }
+
         memberRepository.save(memberEntity);
+        return new TradeResponse(
+                tokenId,
+                tokenEntity.getTokenName(),
+                tokenPrice,
+                quantity,
+                tradeHistoryEntity.getTradedAt()
+        );
+
     }
 
     @Transactional
-    public void buyToken(
+    public TradeResponse buyToken(
             Long memberUid,
             Long tokenId,
             Long quantity
     ) {
-        if (quantity <= 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "매수 수량은 1주 이상이여야 합니다.");
-        }
+        if (quantity <= 0)
+            throw new TradeException(TradeErrorCode.INVALID_QUANTITY);
 
         Optional<MemberEntity> memberEntity = memberRepository.findById(memberUid);
         Optional<TokenEntity> tokenEntity = tokenRepository.findById(tokenId);
@@ -107,17 +118,19 @@ public class TradeService {
                 tokenHoldingRepository.findByMemberUidAndTokenId(memberUid, tokenId);
         TradeHistoryEntity tradeHistoryEntity = new TradeHistoryEntity();
 
-        if (tokenEntity.isEmpty() || memberEntity.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "토큰 혹은 사용자 초기화 오류");
-        }
+        if (tokenEntity.isEmpty())
+            throw new TradeException(TradeErrorCode.TOKEN_NOT_FOUND);
+
+        if (memberEntity.isEmpty())
+            throw new TradeException(TradeErrorCode.MEMBER_NOT_FOUND);
+
         TokenEntity token = tokenEntity.get();
         MemberEntity member = memberEntity.get();
         Long total = quantity * token.getTokenPrice();
         BigDecimal avg = BigDecimal.valueOf(total / quantity);
 
-        if (member.getMemberPoint() < total) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "포인트가 부족합니다.");
-        }
+        if (member.getMemberPoint() < total)
+            throw new TradeException(TradeErrorCode.NOT_ENOUGH_POINT);
 
         member.setMemberPoint(member.getMemberPoint() - total);
 
@@ -153,7 +166,14 @@ public class TradeService {
         tradeHistoryEntity.setTradedAt(date);
 
         tradeHistoryRepository.save(tradeHistoryEntity);
-
         tokenHoldingRepository.save(tokenHoldingEntity);
+
+        return new TradeResponse(
+                tokenId,
+                token.getTokenName(),
+                token.getTokenPrice(),
+                quantity,
+                tradeHistoryEntity.getTradedAt()
+        );
     }
 }

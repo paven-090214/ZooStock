@@ -1,6 +1,11 @@
 package ZooStock.zoostock_backend.market;
 
 import ZooStock.zoostock_backend.market.dto.TokenDTO;
+import ZooStock.zoostock_backend.market.exception.MarketErrorCode;
+import ZooStock.zoostock_backend.market.exception.MarketException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -23,7 +28,7 @@ public class TokenService {
 
         if (tokenName == null ||
         tokenName.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "검색어를 입력하세요.");
+            throw new MarketException(MarketErrorCode.EMPTY_SEARCH_KEYWORD);
         }
 
         return tokenRepository.findByTokenNameContaining(tokenName)
@@ -39,9 +44,8 @@ public class TokenService {
 
     public TokenDTO findToken(Long tokenId) {
 
-        if (tokenId == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "조회할 수 있는 토큰이 없습니다.");
-        }
+        if (tokenId == null)
+            throw new MarketException(MarketErrorCode.TOKEN_NOT_FOUND);
 
         return tokenRepository.findByTokenId(tokenId)
                 .map(token -> token.toTokenDTO(
@@ -51,32 +55,43 @@ public class TokenService {
                         token.getImgPath()
                 ))
                 .orElseThrow(() ->
-                new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "조회할 수 있는 토큰이 없습니다.")
-        );
+                        new MarketException(MarketErrorCode.TOKEN_NOT_FOUND)
+                );
     }
 
-    public List<TokenDTO> findAllToken(String sortValue) {
-        List<TokenEntity> response;
-        switch(sortValue){
+    public Page<TokenDTO> findAllToken(String sortValue, int page) {
+
+        if (page <= 0 || page > 5) {
+            throw new MarketException(MarketErrorCode.INVALID_PAGE);
+        }
+
+        Sort sort = Sort.by(Sort.Direction.ASC, "tokenName");
+
+        switch (sortValue) {
             case "nameAsc":
-                response = tokenRepository.findAll(Sort.by("tokenName").ascending());
+                sort = Sort.by(Sort.Direction.ASC, "tokenName");
                 break;
             case "nameDesc":
-                response = tokenRepository.findAll(Sort.by("tokenName").descending());
+                sort = Sort.by(Sort.Direction.DESC, "tokenName");
                 break;
             case "priceAsc":
-                response = tokenRepository.findAll(Sort.by("tokenPrice").ascending());
+                sort = Sort.by(Sort.Direction.ASC, "tokenPrice");
                 break;
             case "priceDesc":
-                response = tokenRepository.findAll(Sort.by("tokenPrice").descending());
+                sort = Sort.by(Sort.Direction.DESC, "tokenPrice");
                 break;
             default:
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "올바른 정렬 값이 아닙니다.");
+                throw new MarketException(MarketErrorCode.INVALID_SORT);
         }
-        return response
-                .stream()
+
+
+        Pageable pageable = PageRequest.of(
+                page - 1,
+                30,
+                sort
+        );
+
+        return tokenRepository.findAll(pageable)
                 .map(
                         token -> token.toTokenDTO(
                                 token.getTokenId(),
@@ -84,7 +99,7 @@ public class TokenService {
                                 token.getTokenPrice(),
                                 token.getImgPath()
                         )
-                )
-                .toList();
+                );
+
     }
 }

@@ -33,7 +33,8 @@ export default function AuthPage({ signup = false }) {
       if (signup) navigate('/login', { replace: true, state: { signedUp: true } })
       else {
         // 로그인 후 이동은 GuestOnly가 한 곳에서 처리해 이전 화면으로 복귀한다.
-        signIn(result)
+        // 지금은 result가 JWT 문자열이고, 나중에 { accessToken } 모양으로 바뀌어도 동작하게 둔다.
+        signIn(typeof result === 'string' ? result : result?.accessToken)
       }
     } catch (failure) {
       setError(failure.message)
